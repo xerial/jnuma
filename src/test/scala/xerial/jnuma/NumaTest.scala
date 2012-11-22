@@ -27,32 +27,45 @@ class NumaTest extends MySpec {
 
     "allocate buffer on nodes" in {
 
-      val N = 10000000
+      val N = 10000
 
       def access(b:ByteBuffer) {
         val r = new Random(0)
         var i = 0
+        val p = 8 * 1024
+        val buf = new Array[Byte](p)
         while(i < N) {
-          b.get(r.nextInt(b.limit))
+          b.position(r.nextInt(b.limit / p) * p)
+          b.get(buf)
           i += 1
         }
       }
+      val bl = ByteBuffer.allocateDirect(8 * 1024 * 1024)
+      val b0 = Numa.allocOnNode(8 * 1024 * 1024, 0)
+      val b1 = Numa.allocOnNode(8 * 1024 * 1024, 1)
+      val b2 = Numa.allocOnNode(8 * 1024 * 1024, 2)
+
 
       time("numa random access", repeat=100) {
+
+        block("default") {
+          access(bl)
+        }
+
         block("0") {
-          val b = Numa.allocOnNode(4 * 1024 * 1024, 0)
-          access(b)
-          Numa.free(b)
+          access(b0)
         }
 
         block("1") {
-          val b = Numa.allocOnNode(4 * 1024 * 1024, 1)
-          access(b)
-          Numa.free(b)
+          access(b1)
         }
-
+        block("2") {
+          access(b2)
+        }
       }
 
+      Numa.free(b0)
+      Numa.free(b1)
     }
 
 
