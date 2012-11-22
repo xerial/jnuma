@@ -29,6 +29,9 @@ class NumaTest extends MySpec {
         debug("node %d - size:%,d free:%,d", i, n, f)
       }
 
+      val cpu = Numa.currentCpu()
+      debug("current CPU: %d", cpu)
+
       val nodes = (0 to maxNodes)
 
       for(n1 <- nodes; n2 <- n1 to maxNodes) {

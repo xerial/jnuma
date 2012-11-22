@@ -14,27 +14,31 @@ public class NoNuma implements NumaAPI {
 
     @Override
     public int maxNode() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        return -1;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public long nodeSize(int node) {
-        return 0;
+        return -1;
     }
 
     @Override
     public long freeSize(int node) {
-        return 0;
+        return -1;
     }
 
     @Override
     public int distance(int node1, int node2) {
-        return 0;
+        return -1;
     }
 
     @Override
     public int nodeToCpus(int node, long[] buffer, int bufferLen) {
-        return 0;
+        return -1;
+    }
+
+    public int currentCpu() {
+        return -1;
     }
 
 

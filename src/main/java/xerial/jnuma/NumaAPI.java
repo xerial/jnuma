@@ -20,6 +20,8 @@ public interface NumaAPI {
 
     public int nodeToCpus(int node, long[] buffer, int bufferLen);
 
+    public int currentCpu();
+
     /**
      * Allocate a new ByteBuffer on local NUMA node
      * @param capacity

@@ -57,6 +57,14 @@ JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_nodeToCpus
 
 /*
  * Class:     xerial_jnuma_NumaNative
+ * Method:    currentCpu
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_currentCpu
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
  * Method:    allocLocal
  * Signature: (I)Ljava/nio/ByteBuffer;
  */

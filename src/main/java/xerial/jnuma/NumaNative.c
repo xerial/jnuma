@@ -1,4 +1,6 @@
 #include <numa.h>
+#define _GNU_SOURCE
+#include <sched.h>
 #include <stdio.h>
 #include "NumaNative.h"
 
@@ -108,4 +110,12 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free
      //printf("free capacity:%d\n", capacity);
      numa_free(mem, (size_t) capacity);
    }
+  }
+
+
+
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_currentCpu
+  (JNIEnv *env, jobject obj) {
+     return sched_getcpu();
+
   }
