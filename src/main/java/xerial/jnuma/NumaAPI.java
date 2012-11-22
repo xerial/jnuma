@@ -8,6 +8,14 @@ import java.nio.ByteBuffer;
  */
 public interface NumaAPI {
 
+    public boolean isAvailable();
+
+    public int maxNode();
+
+    public long nodeSize(int node);
+
+    public long freeSize(int node);
+
     /**
      * Allocate a new ByteBuffer on local NUMA node
      * @param capacity
@@ -22,6 +30,9 @@ public interface NumaAPI {
      * @return
      */
     public ByteBuffer allocOnNode(int capacity, int node);
+
+
+    public ByteBuffer allocInterleaved(int capacity);
 
 
     /**

@@ -91,11 +91,30 @@ public class Numa {
         }
     }
 
+    public static boolean isAvailable() {
+        return ((NumaAPI) impl).isAvailable();
+    }
+
+    public static int maxNodes() {
+        return ((NumaAPI) impl).maxNode();
+    }
+    public static long nodeSize(int node) {
+        return ((NumaAPI) impl).nodeSize(node);
+    }
+
+    public static long freeSize(int node) {
+        return ((NumaAPI) impl).freeSize(node);
+    }
+
+
     public static ByteBuffer allocLocal(int capacity) {
         return ((NumaAPI) impl).allocLocal(capacity);
     }
     public static ByteBuffer allocOnNode(int capacity, int node) {
         return ((NumaAPI) impl).allocOnNode(capacity, node);
+    }
+    public static ByteBuffer allocInterleaved(int capacity) {
+        return ((NumaAPI) impl).allocInterleaved(capacity);
     }
 
     public static void free(ByteBuffer buf) {

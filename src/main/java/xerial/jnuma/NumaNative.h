@@ -9,6 +9,38 @@ extern "C" {
 #endif
 /*
  * Class:     xerial_jnuma_NumaNative
+ * Method:    isAvailable
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_xerial_jnuma_NumaNative_isAvailable
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    maxNode
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_maxNode
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    nodeSize
+ * Signature: (I)J
+ */
+JNIEXPORT jlong JNICALL Java_xerial_jnuma_NumaNative_nodeSize
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    freeSize
+ * Signature: (I)J
+ */
+JNIEXPORT jlong JNICALL Java_xerial_jnuma_NumaNative_freeSize
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
  * Method:    allocLocal
  * Signature: (I)Ljava/nio/ByteBuffer;
  */
@@ -22,6 +54,14 @@ JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocLocal
  */
 JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocOnNode
   (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    allocInterleaved
+ * Signature: (I)Ljava/nio/ByteBuffer;
+ */
+JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocInterleaved
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     xerial_jnuma_NumaNative

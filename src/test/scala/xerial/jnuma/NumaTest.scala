@@ -9,6 +9,7 @@ package xerial.jnuma
 
 import util.Random
 import java.nio.ByteBuffer
+import java.util
 
 
 /**
@@ -17,6 +18,18 @@ import java.nio.ByteBuffer
 class NumaTest extends MySpec {
 
   "Numa" should {
+    "repot NUMA info" in {
+      val available = Numa.isAvailable
+      val maxNodes = Numa.maxNodes()
+      debug("numa is available: " + available)
+      debug("max nodes: " + maxNodes)
+      for(i <- 0 to maxNodes) {
+        val n = Numa.nodeSize(i)
+        val f = Numa.freeSize(i)
+        debug("node %d - size:%,d free:%,d", i, n, f)
+      }
+    }
+
     "allocate local buffer" in {
       for(i <- 0 until 3) {
         val local = Numa.allocLocal(1024)
@@ -27,12 +40,12 @@ class NumaTest extends MySpec {
 
     "allocate buffer on nodes" in {
 
-      val N = 10000
+      val N = 100000
 
       def access(b:ByteBuffer) {
         val r = new Random(0)
         var i = 0
-        val p = 8 * 1024
+        val p = 4 * 1024
         val buf = new Array[Byte](p)
         while(i < N) {
           b.position(r.nextInt(b.limit / p) * p)
@@ -43,8 +56,7 @@ class NumaTest extends MySpec {
       val bl = ByteBuffer.allocateDirect(8 * 1024 * 1024)
       val b0 = Numa.allocOnNode(8 * 1024 * 1024, 0)
       val b1 = Numa.allocOnNode(8 * 1024 * 1024, 1)
-      val b2 = Numa.allocOnNode(8 * 1024 * 1024, 2)
-
+      val bi = Numa.allocInterleaved(8 * 1024 * 1024)
 
       time("numa random access", repeat=100) {
 
@@ -59,13 +71,14 @@ class NumaTest extends MySpec {
         block("1") {
           access(b1)
         }
-        block("2") {
-          access(b2)
+        block("interleaved") {
+          access(bi)
         }
       }
 
       Numa.free(b0)
       Numa.free(b1)
+      Numa.free(bi)
     }
 
 
