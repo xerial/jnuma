@@ -7,7 +7,12 @@ import java.nio.ByteBuffer;
  */
 public class NumaNative implements NumaAPI {
 
-    public native ByteBuffer numaAlloc(int capacity);
+
+    public native ByteBuffer allocLocal(int capacity);
+
+    public native ByteBuffer allocOnNode(int capacity, int node);
+
+    public native void free(ByteBuffer buf);
 
 }
 

@@ -9,11 +9,27 @@ extern "C" {
 #endif
 /*
  * Class:     xerial_jnuma_NumaNative
- * Method:    numaAlloc
+ * Method:    allocLocal
  * Signature: (I)Ljava/nio/ByteBuffer;
  */
-JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_numaAlloc
+JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocLocal
   (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    allocOnNode
+ * Signature: (II)Ljava/nio/ByteBuffer;
+ */
+JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocOnNode
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    free
+ * Signature: (Ljava/nio/ByteBuffer;)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free
+  (JNIEnv *, jobject, jobject);
 
 #ifdef __cplusplus
 }

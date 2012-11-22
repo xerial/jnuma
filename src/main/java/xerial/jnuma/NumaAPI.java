@@ -9,10 +9,25 @@ import java.nio.ByteBuffer;
 public interface NumaAPI {
 
     /**
-     * Allocate a new ByteBuffer
+     * Allocate a new ByteBuffer on local NUMA node
      * @param capacity
      * @return
      */
-    public ByteBuffer numaAlloc(int capacity);
+    public ByteBuffer allocLocal(int capacity);
+
+    /**
+     * Allocate a new ByteBuffer on the specified NUMA node
+     * @param capacity
+     * @param node
+     * @return
+     */
+    public ByteBuffer allocOnNode(int capacity, int node);
+
+
+    /**
+     * Release the numa buffer
+     * @param buf
+     */
+    public void free(ByteBuffer buf);
 
 }
