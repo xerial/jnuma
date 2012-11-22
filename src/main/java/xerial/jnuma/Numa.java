@@ -110,10 +110,8 @@ public class Numa {
     }
     public static long[] nodeToCpus(int node) {
         int numCpus = Runtime.getRuntime().availableProcessors();
-        long[] bv = new long[(numCpus + 64 - 1)/64];
+        long[] bv = new long[512/8];
         int ret = ((NumaAPI) impl).nodeToCpus(node, bv, bv.length * 8);
-        if(ret == 0)
-            System.out.println("node to CPUs success");
         return bv;
     }
 

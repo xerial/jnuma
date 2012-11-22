@@ -44,7 +44,7 @@ class NumaTest extends MySpec {
           }
           b.mkString
         }
-        debug("node %d -> cpus %s: vec:%s", node, vecStr, cpuVector.mkString(", "))
+        debug("node %d -> cpus %s", node, vecStr)
       }
     }
 
