@@ -28,6 +28,24 @@ class NumaTest extends MySpec {
         val f = Numa.freeSize(i)
         debug("node %d - size:%,d free:%,d", i, n, f)
       }
+
+      val nodes = (0 to maxNodes)
+
+      for(n1 <- nodes; n2 <- n1 to maxNodes) {
+        val d = Numa.distance(n1, n2)
+        debug("distance %s - %s: %d", n1, n2, d)
+      }
+
+      for(node <- nodes) {
+        val cpuVector = Numa.nodeToCpus(node)
+        def vecStr = {
+          val b = for(i <- 0 until Runtime.getRuntime.availableProcessors()) yield {
+            if((cpuVector(i / 64) & (0x01 << (i % 64))) == 0) "0" else "1"
+          }
+          b.mkString
+        }
+        debug("node %d -> cpus %s: vec:%s", node, vecStr, cpuVector.mkString(", "))
+      }
     }
 
     "allocate local buffer" in {
@@ -40,7 +58,7 @@ class NumaTest extends MySpec {
 
     "allocate buffer on nodes" in {
 
-      val N = 100000
+      val N = 10000
 
       def access(b:ByteBuffer) {
         val r = new Random(0)

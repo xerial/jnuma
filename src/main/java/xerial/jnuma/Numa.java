@@ -105,6 +105,17 @@ public class Numa {
     public static long freeSize(int node) {
         return ((NumaAPI) impl).freeSize(node);
     }
+    public static int distance(int node1, int node2) {
+        return ((NumaAPI) impl).distance(node1, node2);
+    }
+    public static long[] nodeToCpus(int node) {
+        int numCpus = Runtime.getRuntime().availableProcessors();
+        long[] bv = new long[(numCpus + 64 - 1)/64];
+        int ret = ((NumaAPI) impl).nodeToCpus(node, bv, bv.length * 8);
+        if(ret == 0)
+            System.out.println("node to CPUs success");
+        return bv;
+    }
 
 
     public static ByteBuffer allocLocal(int capacity) {

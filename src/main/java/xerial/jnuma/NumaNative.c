@@ -46,6 +46,26 @@ JNIEXPORT jlong JNICALL Java_xerial_jnuma_NumaNative_freeSize
   }
 
 
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    distance
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_distance
+  (JNIEnv *env, jobject obj, jint node1, jint node2) {
+  return numa_distance(node1, node2);
+  }
+
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_nodeToCpus
+  (JNIEnv *env, jobject obj, jint node, jlongArray array, jint len) {
+
+   unsigned long* buf = (unsigned long*) (*env)->GetPrimitiveArrayCritical(env, (jarray) array, 0);
+   int ret = numa_node_to_cpus(node, buf, len);
+   (*env)->ReleasePrimitiveArrayCritical(env, (jarray) array, buf, 0);
+   return ret;
+  }
+
+
 
 JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocLocal
   (JNIEnv *env, jobject jobj, jint capacity)

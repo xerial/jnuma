@@ -41,6 +41,22 @@ JNIEXPORT jlong JNICALL Java_xerial_jnuma_NumaNative_freeSize
 
 /*
  * Class:     xerial_jnuma_NumaNative
+ * Method:    distance
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_distance
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    nodeToCpus
+ * Signature: (I[JI)I
+ */
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_nodeToCpus
+  (JNIEnv *, jobject, jint, jlongArray, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
  * Method:    allocLocal
  * Signature: (I)Ljava/nio/ByteBuffer;
  */

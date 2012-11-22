@@ -16,6 +16,10 @@ public interface NumaAPI {
 
     public long freeSize(int node);
 
+    public int distance(int node1, int node2);
+
+    public int nodeToCpus(int node, long[] buffer, int bufferLen);
+
     /**
      * Allocate a new ByteBuffer on local NUMA node
      * @param capacity

@@ -27,6 +27,17 @@ public class NoNuma implements NumaAPI {
         return 0;
     }
 
+    @Override
+    public int distance(int node1, int node2) {
+        return 0;
+    }
+
+    @Override
+    public int nodeToCpus(int node, long[] buffer, int bufferLen) {
+        return 0;
+    }
+
+
     public ByteBuffer allocLocal(int capacity) {
         return ByteBuffer.allocateDirect(capacity);
     }
