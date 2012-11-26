@@ -1,6 +1,21 @@
+#define _GNU_SOURCE
 #include <numa.h>
+#include <sched.h>
 #include <stdio.h>
 #include "NumaNative.h"
+
+
+void throwException(JNIEnv *env, jobject self, int errorCode) {
+   jclass c = (*env)->FindClass(env, "xerial/jnuma/NumaNative");
+   if(c == 0)
+     return;
+
+   jmethodID m = (*env)->GetMethodID(env, c, "throwErro", "(I)V");
+   if(m == 0)
+     return;
+
+   (*env)->CallVoidMethod(env, self, m, (jint) errorCode);
+}
 
 
 /*
@@ -108,4 +123,46 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free
      //printf("free capacity:%d\n", capacity);
      numa_free(mem, (size_t) capacity);
    }
+  }
+
+
+
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_currentCpu
+  (JNIEnv *env, jobject obj) {
+     return sched_getcpu();
+
+  }
+
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
+  (JNIEnv *env, jobject obj, jint pid, jbyteArray maskBuf, jint maskLen) {
+
+  char* in = (char*) (*env)->GetPrimitiveArrayCritical(env, (jarray) maskBuf, 0);
+  cpu_set_t mask;
+  int i;
+  if(in == 0)
+    throwException(env, obj, 10);
+
+  CPU_ZERO(&mask);
+  int ret = sched_getaffinity(0, sizeof(mask), &mask);
+  if(ret < 0)
+    return;
+
+  for(i=0; i<maskLen; ++i)
+     if(CPU_ISSET(i, &mask))
+       in[i / 8] |= (char) (1 << (i % 8));
+
+  (*env)->ReleasePrimitiveArrayCritical(env, (jarray) maskBuf, (void*) in, (jint) 0);
+}
+
+
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setAffinity
+  (JNIEnv *env, jobject obj, jint pid, jint cpu) {
+
+  cpu_set_t mask;
+  CPU_ZERO(&mask);
+  CPU_SET((int) cpu, &mask);
+  int ret = sched_setaffinity(0, sizeof(cpu_set_t), &mask);
+  if(ret < 0)
+    throwException(env, obj, 11);
+
   }
