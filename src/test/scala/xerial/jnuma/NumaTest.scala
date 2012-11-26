@@ -50,7 +50,7 @@ class NumaTest extends MySpec {
 
       def toBitString(b:Array[Byte]) = {
         val s = for(i <- 0 until b.length * 8) yield {
-          if((b(i/8) & (1 << (b%8))) == 0) "0" else "1"
+          if((b(i/8) & (1 << (i%8))) == 0) "0" else "1"
         }
         s.mkString
       }

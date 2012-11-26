@@ -143,10 +143,13 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
     throwException(env, obj, 10);
 
 
-  sched_getaffinity(0, sizeof(mask), &mask);
+  int ret = sched_getaffinity(0, sizeof(mask), &mask);
+  if(ret < 0)
+    return;
+
   for(i=0; i<maskLen; ++i)
      if(CPU_ISSET(i, &mask))
-       in[i / 8] |= 1 << (i % 8);
+       in[i / 8] |= (char) (1 << (i % 8));
 
   (*env)->ReleasePrimitiveArrayCritical(env, (jarray) maskBuf, (void*) in, (jint) 0);
 }

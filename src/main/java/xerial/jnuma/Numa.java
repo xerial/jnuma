@@ -117,8 +117,8 @@ public class Numa {
 
     public static byte[] getAffinity() {
         int maxCpus = Runtime.getRuntime().availableProcessors();
-        byte[] cpuMask = new byte[(maxCpus + 8)/8];
-        ((NumaAPI) impl).getAffinity(0,  cpuMask, cpuMask.length);
+        byte[] cpuMask = new byte[((maxCpus + 7-1)/8 * 2)];
+        ((NumaAPI) impl).getAffinity(0,  cpuMask, cpuMask.length * 8);
         return cpuMask;
     }
 
