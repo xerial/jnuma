@@ -142,7 +142,7 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
   if(in == 0)
     throwException(env, obj, 10);
 
-
+  CPU_ZERO(&mask);
   int ret = sched_getaffinity(0, sizeof(mask), &mask);
   if(ret < 0)
     return;
