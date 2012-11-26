@@ -64,6 +64,8 @@ class NumaTest extends MySpec {
 
       val s = (0 until numCPUs).par.map { cpu =>
         Numa.setAffinity(cpu)
+        if(cpu % 2 == 0)
+          (0 until Int.MaxValue / 10).foreach { i => }
         Numa.getAffinity()
       }
       debug("affinity after setting: %s", s.map(toBitString(_)).mkString(", "))
