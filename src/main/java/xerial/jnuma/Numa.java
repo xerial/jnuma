@@ -122,6 +122,10 @@ public class Numa {
         return cpuMask;
     }
 
+    public static void setAffinity(int cpu) {
+        ((NumaAPI) impl).setAffinity(0, cpu);
+    }
+
 
     public static ByteBuffer allocLocal(int capacity) {
         return ((NumaAPI) impl).allocLocal(capacity);

@@ -42,6 +42,11 @@ public class NoNuma implements NumaAPI {
         throw new UnsupportedOperationException("getAffinity");
     }
 
+    @Override
+    public void setAffinity(int pid, int cpu) {
+        throw new UnsupportedOperationException("setAffinity");
+    }
+
     public int currentCpu() {
         return -1;
     }

@@ -153,3 +153,16 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
 
   (*env)->ReleasePrimitiveArrayCritical(env, (jarray) maskBuf, (void*) in, (jint) 0);
 }
+
+
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setAffinity
+  (JNIEnv *env, jobject obj, jint pid, jint cpu) {
+
+  cpu_set_t mask;
+  CPU_ZERO(&mask);
+  CPU_SET((int) cpu, &mask);
+  int ret = sched_setaffinity(0, sizeof(cpu_set_t), &mask);
+  if(ret < 0)
+    throwException(env, obj, 11);
+
+  }

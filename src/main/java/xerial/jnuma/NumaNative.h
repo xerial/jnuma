@@ -65,6 +65,14 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
 
 /*
  * Class:     xerial_jnuma_NumaNative
+ * Method:    setAffinity
+ * Signature: (II)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setAffinity
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
  * Method:    allocLocal
  * Signature: (I)Ljava/nio/ByteBuffer;
  */

@@ -55,11 +55,19 @@ class NumaTest extends MySpec {
         s.mkString
       }
 
-
-      val affinity = (0 until Runtime.getRuntime.availableProcessors()).par.map { cpu =>
+      val numCPUs = Runtime.getRuntime.availableProcessors();
+      val affinity = (0 until numCPUs).par.map { cpu =>
         Numa.getAffinity()
       }
       debug("affinity: %s", affinity.map(toBitString(_)).mkString(", "))
+
+
+      val s = (0 until numCPUs).par.map { cpu =>
+        Numa.setAffinity(cpu)
+        Numa.getAffinity()
+      }
+      debug("affinity after setting: %s", s.map(toBitString(_)).mkString(", "))
+
 
     }
 
@@ -115,7 +123,6 @@ class NumaTest extends MySpec {
         }
       }
 
-      debug("has array: %s", b0.hasArray)
 
 
       Numa.free(b0)

@@ -22,6 +22,8 @@ public interface NumaAPI {
 
     public void getAffinity(int pid, byte[] cpuBitMask, int maskLen);
 
+    public void setAffinity(int pid, int cpu);
+
     /**
      * Allocate a new ByteBuffer on local NUMA node
      * @param capacity

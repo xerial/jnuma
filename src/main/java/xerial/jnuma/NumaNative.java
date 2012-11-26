@@ -14,7 +14,7 @@ public class NumaNative implements NumaAPI {
     public native int distance(int node1, int node2);
     public native int nodeToCpus(int node, long[] buffer, int bufferLen);
     public native void getAffinity(int pid, byte[] cpuBitMask, int maskLen);
-
+    public native void setAffinity(int pid, int cpu);
 
     public native ByteBuffer allocLocal(int capacity);
 
