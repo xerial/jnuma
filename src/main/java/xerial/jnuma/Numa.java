@@ -114,9 +114,14 @@ public class Numa {
         int ret = ((NumaAPI) impl).nodeToCpus(node, bv, bv.length * 8);
         return bv;
     }
-    public static int currentCpu() {
-        return ((NumaAPI) impl).currentCpu();
+
+    public static byte[] getAffinity() {
+        int maxCpus = Runtime.getRuntime().availableProcessors();
+        byte[] cpuMask = new byte[(maxCpus + 8)/8];
+        ((NumaAPI) impl).getAffinity(0,  cpuMask, cpuMask.length);
+        return cpuMask;
     }
+
 
     public static ByteBuffer allocLocal(int capacity) {
         return ((NumaAPI) impl).allocLocal(capacity);

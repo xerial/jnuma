@@ -57,11 +57,11 @@ JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_nodeToCpus
 
 /*
  * Class:     xerial_jnuma_NumaNative
- * Method:    currentCpu
- * Signature: ()I
+ * Method:    getAffinity
+ * Signature: (I[BI)V
  */
-JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_currentCpu
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
+  (JNIEnv *, jobject, jint, jbyteArray, jint);
 
 /*
  * Class:     xerial_jnuma_NumaNative

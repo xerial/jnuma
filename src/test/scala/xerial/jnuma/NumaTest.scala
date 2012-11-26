@@ -29,8 +29,6 @@ class NumaTest extends MySpec {
         debug("node %d - size:%,d free:%,d", i, n, f)
       }
 
-      val cpu = Numa.currentCpu()
-      debug("current CPU: %d", cpu)
 
       val nodes = (0 to maxNodes)
 
@@ -49,6 +47,20 @@ class NumaTest extends MySpec {
         }
         debug("node %d -> cpus %s", node, vecStr)
       }
+
+      def toBitString(b:Array[Byte]) = {
+        val s = for(i <- 0 until b.length * 8) yield {
+          if((b(i/8) & (1 << (b%8))) == 0) "0" else "1"
+        }
+        s.mkString
+      }
+
+
+      val affinity = (0 until Runtime.getRuntime.availableProcessors()).par.map { cpu =>
+        Numa.getAffinity()
+      }
+      debug("affinity: %s", affinity.map(toBitString(_)).mkString(", "))
+
     }
 
     "allocate local buffer" in {
@@ -75,14 +87,19 @@ class NumaTest extends MySpec {
         }
       }
       val bl = ByteBuffer.allocateDirect(8 * 1024 * 1024)
+      val bj = ByteBuffer.allocate(8 * 1024 * 1024)
       val b0 = Numa.allocOnNode(8 * 1024 * 1024, 0)
       val b1 = Numa.allocOnNode(8 * 1024 * 1024, 1)
       val bi = Numa.allocInterleaved(8 * 1024 * 1024)
 
       time("numa random access", repeat=100) {
 
-        block("default") {
+        block("direct") {
           access(bl)
+        }
+
+        block("default") {
+          access(bj)
         }
 
         block("0") {

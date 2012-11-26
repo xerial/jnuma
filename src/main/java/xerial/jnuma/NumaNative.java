@@ -13,7 +13,8 @@ public class NumaNative implements NumaAPI {
     public native long freeSize(int node);
     public native int distance(int node1, int node2);
     public native int nodeToCpus(int node, long[] buffer, int bufferLen);
-    public native int currentCpu();
+    public native void getAffinity(int pid, byte[] cpuBitMask, int maskLen);
+
 
     public native ByteBuffer allocLocal(int capacity);
 
@@ -21,6 +22,11 @@ public class NumaNative implements NumaAPI {
     public native ByteBuffer allocInterleaved(int capacity);
 
     public native void free(ByteBuffer buf);
+
+
+    private void throwError(int errorCode) {
+
+    }
 
 }
 

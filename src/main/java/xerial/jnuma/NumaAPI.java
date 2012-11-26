@@ -20,7 +20,7 @@ public interface NumaAPI {
 
     public int nodeToCpus(int node, long[] buffer, int bufferLen);
 
-    public int currentCpu();
+    public void getAffinity(int pid, byte[] cpuBitMask, int maskLen);
 
     /**
      * Allocate a new ByteBuffer on local NUMA node
