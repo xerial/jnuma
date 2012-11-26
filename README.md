@@ -23,5 +23,8 @@ A Java library for accessing NUMA (Non Uniform Memory Access) API.
 Call static methods defined in [xerial.jnuma.Numa](https://oss.sonatype.org/service/local/repositories/snapshots/archive/org/xerial/jnuma/0.1-SNAPSHOT/jnuma-0.1-SNAPSHOT-javadoc.jar/!/xerial/jnuma/Numa.html)
 
 
+## limitation
+
+Currenty jnuma supports 64-bit Linux only. 
 
 
