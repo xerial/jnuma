@@ -200,6 +200,44 @@ class NumaTest extends MySpec {
       split
     }
 
+    def radixSort8withArray(buf:ByteBuffer) = {
+      val K = 256
+      val N = buf.capacity()
+
+      val pile = Array.ofDim[Int](K)
+      // count frequencies
+      buf.position(0)
+      for(i <- 0 until N)
+        pile(buf.get(i) + 128) += 1
+
+      // count cumulates
+      for(i <- 1 until K) {
+        pile(i) += pile(i-1)
+      }
+
+      def split {
+        for(i <- 0 until N) {
+          var e = buf.get(i)
+          var toContinue = true
+          while(toContinue) {
+            val p = e + 128
+            val pileIndex = pile(p) - 1
+            pile(p) -= 1
+            if(pileIndex < i)
+              toContinue = false
+            else {
+              val tmp = buf.get(pileIndex)
+              buf.put(pileIndex, e)
+              e = tmp
+            }
+          }
+          buf.put(i, e)
+        }
+      }
+      split
+    }
+
+
     def radixSort8_array(b:Array[Byte]) = {
       val K = 256
       val N = b.length
@@ -329,7 +367,7 @@ class NumaTest extends MySpec {
 
     "sort in parallel" taggedAs("psort") in {
 
-      val bufferSize = 64 * 1024 * 1024
+      val bufferSize = 8 * 1024 * 1024
 
       def init(b:ByteBuffer) {
         val r = new Random(0)
@@ -362,6 +400,18 @@ class NumaTest extends MySpec {
           }
         }
 
+        block("numa-aware2", repeat=N) {
+          val M = Numa.numNodes
+          (0 until C).par.foreach { cpu =>
+            Numa.setAffinity(cpu)
+            val buf = Numa.allocOnNode(bufferSize, cpu % M)
+            holder += buf
+            init(buf)
+            radixSort8withArray(buf)
+            Numa.resetAffinity()
+          }
+        }
+
         block("heap", repeat=N) {
           (0 until C).par.foreach { cpu =>
             Numa.setAffinity(cpu)
@@ -373,14 +423,13 @@ class NumaTest extends MySpec {
           }
         }
 
-        block("array", repeat=N) {
+        block("wrapped", repeat=N) {
           (0 until C).par.foreach { cpu =>
             Numa.setAffinity(cpu)
-
-            val buf = new Array[Byte](bufferSize)
-            initArray(buf)
-            radixSort8_array(buf)
-
+            val arr = new Array[Byte](bufferSize)
+            val buf = ByteBuffer.wrap(arr)
+            init(buf)
+            radixSort8(buf)
             Numa.resetAffinity()
           }
         }
