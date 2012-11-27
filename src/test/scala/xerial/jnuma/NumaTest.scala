@@ -321,7 +321,7 @@ class NumaTest extends MySpec {
 
     "sort in parallel" taggedAs("psort") in {
 
-      val bufferSize = 64 * 1024 * 1024
+      val bufferSize = 8 * 1024 * 1024
 
       def init(b:ByteBuffer) {
         val r = new Random(0)
@@ -334,7 +334,7 @@ class NumaTest extends MySpec {
       def boundTo[U](cpu:Int)(f: => U): U = {
         try {
           Numa.setAffinity(cpu)
-          f
+          f 
         }
         finally
           Numa.resetAffinity
