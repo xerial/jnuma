@@ -156,15 +156,17 @@ class NumaTest extends MySpec {
 
     "perform microbenchmark" taggedAs("bench") in {
 
-      val bufferSize = 16 * 1024 * 1024
+      val bufferSize = 8 * 1024 * 1024
       when("buffer size is %,d".format(bufferSize))
 
-      val bnuma0 = Numa.allocOnNode(bufferSize, 0);
-      val bnuma1 = Numa.allocOnNode(bufferSize, 1);
+      val numaBufs = (for(i <- 0 until Numa.numNodes()) yield "numa%d".format(i) -> Numa.allocOnNode(bufferSize, i)) :+
+        "numa-i" -> Numa.allocInterleaved(bufferSize)
+
+
       val bdirect = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
       val bheap = ByteBuffer.allocate(bufferSize).order(ByteOrder.nativeOrder());
 
-      val bufs = Map("numa0" -> bnuma0, "numa1" -> bnuma1, "direct" -> bdirect, "heap" -> bheap)
+      val bufs = numaBufs ++ Map("direct" -> bdirect, "heap" -> bheap)
 
       // fill bytes
       def fillBytes(b:ByteBuffer) = {
@@ -214,7 +216,7 @@ class NumaTest extends MySpec {
         // count frequencies
         buf.position(0)
         for(i <- 0 until buf.capacity()) {
-          count(buf.get() + 128) += 1
+          count(buf.get(i) + 128) += 1
         }
         // count cumulates
         for(i <- 1 to K)
@@ -258,8 +260,8 @@ class NumaTest extends MySpec {
       bench("random page read", randomAccess)
       bench("radix sort", radixSort8, rep=3)
 
-      Numa.free(bnuma0)
-      Numa.free(bnuma1)
+      for((name, b) <- numaBufs)
+        Numa.free(b)
     }
 
 
