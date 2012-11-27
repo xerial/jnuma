@@ -156,52 +156,6 @@ class NumaTest extends MySpec {
 
     def radixSort8(buf:ByteBuffer) = {
       val K = 256
-      val N = buf.capacity() - (2 * 4 * K)
-
-      val countOffset = buf.capacity() / 4
-      val pileOffset = countOffset + K
-
-      // count frequencies
-      buf.position(0)
-      for(i <- 0 until K) {
-        buf.putInt(countOffset + i * 4, 0)
-      }
-      for(i <- 0 until buf.capacity()) {
-        val ch = buf.get(i) + 128
-        val prevCount = buf.getInt(countOffset + ch * 4)
-        buf.putInt(countOffset + ch * 4, prevCount + 1)
-      }
-      // count cumulates
-      for(i <- 0 until K) {
-        val prev = if(i ==0) 0 else buf.getInt(countOffset + (i - 1) * 4)
-        val current = buf.getInt(countOffset + i * 4)
-        buf.putInt(pileOffset + i * 4, prev + current)
-      }
-
-      def split {
-        for(i <- 0 until N) {
-          var e = buf.get(i)
-          var toContinue = true
-          while(toContinue) {
-            val p = e + 128
-            val pileIndex = buf.getInt(pileOffset + p * 4) - 1
-            buf.putInt(pileOffset + p*4, pileIndex)
-            if(pileIndex < i)
-              toContinue = false
-            else {
-              val tmp = buf.get(pileIndex)
-              buf.put(pileIndex, e)
-              e = tmp
-            }
-          }
-          buf.put(i, e)
-        }
-      }
-      split
-    }
-
-    def radixSort8withArray(buf:ByteBuffer) = {
-      val K = 256
       val N = buf.capacity()
 
       val pile = Array.ofDim[Int](K)
@@ -367,7 +321,7 @@ class NumaTest extends MySpec {
 
     "sort in parallel" taggedAs("psort") in {
 
-      val bufferSize = 8 * 1024 * 1024
+      val bufferSize = 64 * 1024 * 1024
 
       def init(b:ByteBuffer) {
         val r = new Random(0)
@@ -375,14 +329,16 @@ class NumaTest extends MySpec {
           b.put(i, r.nextInt.toByte)
         }
       }
-      def initArray(b:Array[Byte]) {
-        val r = new Random(0)
-        for(i <- 0 until bufferSize) {
-          b(i) = r.nextInt.toByte
-        }
-      }
-
       val N = 1
+
+      def boundTo[U](cpu:Int)(f: => U): U = {
+        try {
+          Numa.setAffinity(cpu)
+          f
+        }
+        finally
+          Numa.resetAffinity
+      }
 
       val holder = Seq.newBuilder[ByteBuffer]
       val C = Numa.numCPUs
@@ -391,46 +347,33 @@ class NumaTest extends MySpec {
         block("numa-aware", repeat=N) {
           val M = Numa.numNodes
           (0 until C).par.foreach { cpu =>
-            Numa.setAffinity(cpu)
-            val buf = Numa.allocOnNode(bufferSize, cpu % M)
-            holder += buf
-            init(buf)
-            radixSort8(buf)
-            Numa.resetAffinity()
-          }
-        }
-
-        block("numa-aware2", repeat=N) {
-          val M = Numa.numNodes
-          (0 until C).par.foreach { cpu =>
-            Numa.setAffinity(cpu)
-            val buf = Numa.allocOnNode(bufferSize, cpu % M)
-            holder += buf
-            init(buf)
-            radixSort8withArray(buf)
-            Numa.resetAffinity()
+            boundTo(cpu) {
+              val buf = Numa.allocOnNode(bufferSize, cpu % M)
+              holder += buf
+              init(buf)
+              radixSort8(buf)
+            }
           }
         }
 
         block("heap", repeat=N) {
           (0 until C).par.foreach { cpu =>
-            Numa.setAffinity(cpu)
-            val buf = ByteBuffer.allocate(bufferSize)
-            init(buf)
-            radixSort8(buf)
-
-            Numa.resetAffinity()
+            boundTo(cpu) {
+              val buf = ByteBuffer.allocate(bufferSize)
+              init(buf)
+              radixSort8(buf)
+            }
           }
         }
 
         block("wrapped", repeat=N) {
           (0 until C).par.foreach { cpu =>
-            Numa.setAffinity(cpu)
-            val arr = new Array[Byte](bufferSize)
-            val buf = ByteBuffer.wrap(arr)
-            init(buf)
-            radixSort8(buf)
-            Numa.resetAffinity()
+            boundTo(cpu) {
+              val arr = new Array[Byte](bufferSize)
+              val buf = ByteBuffer.wrap(arr)
+              init(buf)
+              radixSort8(buf)
+            }
           }
         }
 
