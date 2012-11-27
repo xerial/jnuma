@@ -24,7 +24,9 @@ import java.security.ProtectionDomain;
 import java.util.Arrays;
 
 /**
- * Numa API
+ * Numa API. When allocating new {@link java.nio.ByteBuffer}s using this API,
+ * you must release these buffers by calling {@link Numa#free(java.nio.ByteBuffer)} because
+ * the allocated buffers are out of control of the GC of the JVM.
  *
  * @author Taro L. Saito
  */
@@ -121,7 +123,7 @@ public class Numa {
     }
 
     /**
-     * Max number of numa nodes (memorys)
+     * Max number of numa nodes (local memories)
      * @return
      */
     public static int numNodes() {
@@ -197,9 +199,9 @@ public class Numa {
     }
 
     /**
-     *
-     * @param node
-     * @return
+     * Return the bit vector showing the closest CPUs to the specified NUMA node
+     * @param node numa node number
+     * @return cpu bit vector
      */
     public static long[] nodeToCpus(int node) {
         long[] bv = newCPUBitMask();
