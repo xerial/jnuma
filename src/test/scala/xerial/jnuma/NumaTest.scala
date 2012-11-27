@@ -1,3 +1,19 @@
+/*
+ * Copyright 2012 Taro L. Saito
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 //--------------------------------------
 //
 // NumaTest.scala
@@ -20,19 +36,19 @@ class NumaTest extends MySpec {
   "Numa" should {
     "repot NUMA info" in {
       val available = Numa.isAvailable
-      val maxNodes = Numa.maxNodes()
+      val numNodes = Numa.numNodes()
       debug("numa is available: " + available)
-      debug("max nodes: " + maxNodes)
-      for(i <- 0 to maxNodes) {
+      debug("num nodes: " + numNodes)
+      for(i <- 0 until numNodes) {
         val n = Numa.nodeSize(i)
         val f = Numa.freeSize(i)
         debug("node %d - size:%,d free:%,d", i, n, f)
       }
 
 
-      val nodes = (0 to maxNodes)
+      val nodes = (0 until numNodes)
 
-      for(n1 <- nodes; n2 <- n1 to maxNodes) {
+      for(n1 <- nodes; n2 <- n1 until numNodes) {
         val d = Numa.distance(n1, n2)
         debug("distance %s - %s: %d", n1, n2, d)
       }
@@ -48,9 +64,9 @@ class NumaTest extends MySpec {
         debug("node %d -> cpus %s", node, vecStr)
       }
 
-      def toBitString(b:Array[Byte]) = {
-        val s = for(i <- 0 until b.length * 8) yield {
-          if((b(i/8) & (1 << (i%8))) == 0) "0" else "1"
+      def toBitString(b:Array[Long]) = {
+        val s = for(i <- 0 until Numa.numCPUs()) yield {
+          if((b(i/64) & (1L << (i%64))) == 0) "0" else "1"
         }
         s.mkString
       }
@@ -70,6 +86,11 @@ class NumaTest extends MySpec {
       }
       debug("affinity after setting: %s", s.map(toBitString(_)).mkString(", "))
 
+      val r = (0 until numCPUs).par.map { cpu =>
+        Numa.resetAffinity()
+        Numa.getAffinity()
+      }
+      debug("affinity after resetting: %s", r.map(toBitString(_)).mkString(", "))
 
     }
 

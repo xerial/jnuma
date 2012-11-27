@@ -1,54 +1,66 @@
+/*
+ * Copyright 2012 Taro L. Saito
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package xerial.jnuma;
 
 import java.nio.ByteBuffer;
 
 /**
+ * A stub when accessing numa API is not supported in the system
  * @author leo
  */
-public class NoNuma implements NumaAPI {
+public class NoNuma implements NumaInterface {
 
 
     public boolean isAvailable() {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        return false;
     }
 
     @Override
     public int maxNode() {
-        return -1;  //To change body of implemented methods use File | Settings | File Templates.
+        return 1;
     }
 
     @Override
     public long nodeSize(int node) {
-        return -1;
+        return Runtime.getRuntime().maxMemory();
     }
 
     @Override
     public long freeSize(int node) {
-        return -1;
+        return Runtime.getRuntime().freeMemory();
     }
 
     @Override
     public int distance(int node1, int node2) {
-        return -1;
+        return 10;
     }
 
     @Override
-    public int nodeToCpus(int node, long[] buffer, int bufferLen) {
-        return -1;
+    public void nodeToCpus(int node, long[] buffer) {
     }
 
     @Override
-    public void getAffinity(int pid, byte[] cpuBitMask, int maskLen) {
-        throw new UnsupportedOperationException("getAffinity");
+    public void getAffinity(int pid, long[] cpuBitMask, int numCPUs) {
+        // do nothing
     }
 
     @Override
-    public void setAffinity(int pid, int cpu) {
-        throw new UnsupportedOperationException("setAffinity");
-    }
-
-    public int currentCpu() {
-        return -1;
+    public void setAffinity(int pid, long[] cpuBitMask, int numCPUs) {
+        // do nothing
     }
 
 
@@ -67,6 +79,7 @@ public class NoNuma implements NumaAPI {
 
     @Override
     public void free(ByteBuffer buf) {
-        // Do nothing. Let the GC collect the freed buffer
+        // Simply clear the buffer and let the GC collect the freed memory
+        buf.clear();
     }
 }

@@ -1,7 +1,23 @@
+/*
+ * Copyright 2012 Taro L. Saito
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #define _GNU_SOURCE
 #include <numa.h>
 #include <sched.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "NumaNative.h"
 
 
@@ -71,15 +87,15 @@ JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_distance
   return numa_distance(node1, node2);
   }
 
-JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_nodeToCpus
-  (JNIEnv *env, jobject obj, jint node, jlongArray array, jint len) {
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_nodeToCpus
+  (JNIEnv *env, jobject obj, jint node, jlongArray array) {
 
    unsigned long* buf = (unsigned long*) (*env)->GetPrimitiveArrayCritical(env, (jarray) array, 0);
+   jsize len = (size_t) (*env)->GetArrayLength(env, array);
    int ret = numa_node_to_cpus(node, buf, len);
    (*env)->ReleasePrimitiveArrayCritical(env, (jarray) array, buf, 0);
    return ret;
   }
-
 
 
 JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocLocal
@@ -126,17 +142,10 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free
   }
 
 
-
-JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_currentCpu
-  (JNIEnv *env, jobject obj) {
-     return sched_getcpu();
-
-  }
-
 JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
-  (JNIEnv *env, jobject obj, jint pid, jbyteArray maskBuf, jint maskLen) {
+  (JNIEnv *env, jobject obj, jint pid, jlongArray maskBuf, jint numCPUs) {
 
-  char* in = (char*) (*env)->GetPrimitiveArrayCritical(env, (jarray) maskBuf, 0);
+  uint64_t* in = (uint64_t*) (*env)->GetPrimitiveArrayCritical(env, (jarray) maskBuf, 0);
   cpu_set_t mask;
   int i;
   if(in == 0)
@@ -147,22 +156,29 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
   if(ret < 0)
     return;
 
-  for(i=0; i<maskLen; ++i)
+  for(i=0; i<numCPUs; ++i)
      if(CPU_ISSET(i, &mask))
-       in[i / 8] |= (char) (1 << (i % 8));
+       in[i / 64] |= (uint64_t) (((uint64_t) 1) << (i % 64));
 
   (*env)->ReleasePrimitiveArrayCritical(env, (jarray) maskBuf, (void*) in, (jint) 0);
 }
 
 
 JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setAffinity
-  (JNIEnv *env, jobject obj, jint pid, jint cpu) {
+  (JNIEnv *env, jobject obj, jint pid, jlongArray maskBuf, jint numCPUs) {
 
+  uint64_t* in = (uint64_t*) (*env)->GetPrimitiveArrayCritical(env, (jarray) maskBuf, 0);
   cpu_set_t mask;
+  int i;
+
   CPU_ZERO(&mask);
-  CPU_SET((int) cpu, &mask);
+  for(i=0; i<numCPUs; ++i)
+    if(in[i / 64] & ((uint64_t) 1 << (i % 64)))
+     CPU_SET((int) i, &mask);
+
+  (*env)->ReleasePrimitiveArrayCritical(env, (jarray) maskBuf, (void*) in, (jint) 0);
+
   int ret = sched_setaffinity(0, sizeof(cpu_set_t), &mask);
   if(ret < 0)
     throwException(env, obj, 11);
-
-  }
+}
