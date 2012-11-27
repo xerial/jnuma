@@ -24,8 +24,9 @@
 package xerial.jnuma
 
 import util.Random
-import java.nio.ByteBuffer
+import java.nio.{ByteOrder, ByteBuffer}
 import java.util
+import java.io.{OutputStream, FileOutputStream}
 
 
 /**
@@ -81,7 +82,7 @@ class NumaTest extends MySpec {
       val s = (0 until numCPUs).par.map { cpu =>
         Numa.setAffinity((cpu + 1) % numCPUs)
         if(cpu % 2 == 0)
-          (0 until Int.MaxValue / 3).foreach { i => }
+          (0 until Int.MaxValue / 10).foreach { i => }
         Numa.getAffinity()
       }
       debug("affinity after setting: %s", s.map(toBitString(_)).mkString(", "))
@@ -151,6 +152,80 @@ class NumaTest extends MySpec {
       Numa.free(b0)
       Numa.free(b1)
       Numa.free(bi)
+    }
+
+    "perform microbenchmark" taggedAs("bench") in {
+
+      val bufferSize = 16 * 1024 * 1024
+
+      val bnuma = Numa.allocLocal(bufferSize);
+      val bdirect = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
+      val bheap = ByteBuffer.allocate(bufferSize).order(ByteOrder.nativeOrder());
+
+      val bufs = Map("numa" -> bnuma, "direct" -> bdirect, "heap" -> bheap)
+
+      // fill bytes
+      def fillBytes(b:ByteBuffer) = {
+        var i = 0
+        b.clear()
+        while(b.remaining() > 0) {
+          b.put(i.toByte)
+          i += 1
+        }
+      }
+
+      def fillInt(b:ByteBuffer) = {
+        b.clear()
+        var i = 0
+        while(b.remaining() >= 4) {
+          b.putInt(i)
+          i += 1
+        }
+      }
+
+      val devNull = new FileOutputStream("/dev/null")
+      def dump(b:ByteBuffer) = {
+        b.position(0)
+        b.limit(b.capacity())
+        devNull.getChannel().write(b)
+      }
+
+      def randomAccess(b:ByteBuffer) = {
+        val r = new Random(0)
+        val pageSize = 4 * 1024
+        val cap = b.capacity() / pageSize
+        var i = 0
+        val buf = new Array[Byte](pageSize)
+        while(i < 10000) {
+          b.position(r.nextInt(cap) * pageSize)
+          b.get(buf)
+          i += 1
+        }
+      }
+
+      def radixSort8(b:ByteBuffer) = {
+        var head = 0
+        var tail = b.capacity()
+        var i = 0
+        while(i < tail) {
+
+        }
+
+      }
+
+      def bench[U](name:String, f:ByteBuffer => U, rep:Int = 100) {
+        time(name, repeat=rep) {
+          for((name, b) <- bufs)
+            block(name) { f(b) }
+        }
+      }
+
+      bench("fill byte", fillBytes)
+      bench("fill int", fillInt)
+      bench("dump to /dev/null", dump)
+      bench("random page read", randomAccess)
+
+      Numa.free(bnuma)
     }
 
 

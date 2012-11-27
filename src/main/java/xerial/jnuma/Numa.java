@@ -24,7 +24,10 @@ import java.security.ProtectionDomain;
 import java.util.Arrays;
 
 /**
- * Numa API. When allocating new {@link java.nio.ByteBuffer}s using this API,
+ * Numa API.
+ *
+ *
+ * When allocating new {@link java.nio.ByteBuffer}s using this API,
  * you must release these buffers by calling {@link Numa#free(java.nio.ByteBuffer)} because
  * the allocated buffers are out of control of the GC of the JVM.
  *
@@ -32,6 +35,10 @@ import java.util.Arrays;
  */
 public class Numa {
 
+    /**
+     * This type must be Object rather than NumaInterface because some JVM implementation loads the the class
+     * specified in the field before the completion of the injection of NumaInterface and NumaNative to the root class loader.
+     */
     private static Object impl = init();
 
     private static ClassLoader rootClassLoader() {
