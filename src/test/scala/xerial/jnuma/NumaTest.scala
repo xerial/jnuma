@@ -240,7 +240,7 @@ class NumaTest extends MySpec {
 
     "perform microbenchmark" taggedAs("bench") in {
 
-      val bufferSize = 8 * 1024
+      val bufferSize = 4 * 1024 * 1024
       when("buffer size is %,d".format(bufferSize))
 
       val numaBufs = (for(i <- 0 until Numa.numNodes()) yield "numa%d".format(i) -> Numa.allocOnNode(bufferSize, i)) :+
@@ -329,7 +329,7 @@ class NumaTest extends MySpec {
 
     "sort in parallel" taggedAs("psort") in {
 
-      val bufferSize = 8 * 1024 * 1024
+      val bufferSize = 64 * 1024 * 1024
 
       def init(b:ByteBuffer) {
         val r = new Random(0)
@@ -347,7 +347,7 @@ class NumaTest extends MySpec {
       val N = 1
 
       val holder = Seq.newBuilder[ByteBuffer]
-      val C = Numa.numNodes
+      val C = Numa.numCPUs
       debug("start parallel sorting using %d CPUs", C)
       time("sorting", repeat=3) {
         block("numa-aware", repeat=N) {
@@ -364,27 +364,27 @@ class NumaTest extends MySpec {
 
         block("heap", repeat=N) {
           (0 until C).par.foreach { cpu =>
+            Numa.setAffinity(cpu)
             val buf = ByteBuffer.allocate(bufferSize)
             init(buf)
             radixSort8(buf)
+
+            Numa.resetAffinity()
           }
         }
 
         block("array", repeat=N) {
           (0 until C).par.foreach { cpu =>
+            Numa.setAffinity(cpu)
+
             val buf = new Array[Byte](bufferSize)
             initArray(buf)
             radixSort8_array(buf)
+
+            Numa.resetAffinity()
           }
         }
 
-        block("Arrays.sort", repeat=N) {
-          (0 until C).par.foreach { cpu =>
-            val buf = new Array[Byte](bufferSize)
-            initArray(buf)
-            util.Arrays.sort(buf)
-          }
-        }
 
       }
 
