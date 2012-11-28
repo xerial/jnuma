@@ -35,7 +35,7 @@ import java.io.{OutputStream, FileOutputStream}
 class NumaTest extends MySpec {
 
   "Numa" should {
-    "repot NUMA info" taggedAs ("report") in {
+    "report NUMA info" taggedAs ("report") in {
       val available = Numa.isAvailable
       val numNodes = Numa.numNodes()
       debug("numa is available: " + available)
@@ -82,8 +82,7 @@ class NumaTest extends MySpec {
           Numa.runOnAllNodes()
           n
       }
-      debug("prefererd NUMA nodes: %s", preferred.mkString(", "))
-
+      debug("setting prefererd NUMA nodes: %s", preferred.mkString(", "))
 
 
       val s = (0 until numCPUs).par.map {
