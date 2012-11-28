@@ -38,6 +38,15 @@ public interface NumaInterface {
     public void getAffinity(int pid, long[] cpuBitMask, int numCPUs);
     public void setAffinity(int pid, long[] cpuBitMask, int numCPUs);
 
+    public int preferredNode();
+    public void setLocalAlloc();
+
+    public void setPreferred(int node);
+    public void runOnNode(int node);
+
+    //public void bind(long[] nodeMask);
+
+    public ByteBuffer alloc(int capacity);
     /**
      * Allocate a new ByteBuffer on local NUMA node
      * @param capacity

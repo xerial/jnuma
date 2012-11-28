@@ -211,7 +211,7 @@ public class Numa {
      * @return cpu bit vector
      */
     public static long[] nodeToCpus(int node) {
-        long[] bv = newCPUBitMask();
+        long[] bv = new long[512/8];
         ((NumaInterface) impl).nodeToCpus(node, bv);
         return bv;
     }
@@ -252,6 +252,52 @@ public class Numa {
         ((NumaInterface) impl).setAffinity(0, newCPUBitMaskForAllCPUs(), numCPUs());
     }
 
+    /**
+     * Returns the preferred node of the current thread.
+     * @return preferred numa node
+     */
+    public static int getPreferredNode() {
+        return ((NumaInterface) impl).preferredNode();
+    }
+
+    /**
+     * Set the memory allocation policy for the calling thread to local allocation.
+     */
+    public static void setLocalAlloc() {
+        ((NumaInterface) impl).setLocalAlloc();
+    }
+
+    /**
+     * Sets the preferred node for the current thread. The system will attempt to allocate memory from the preferred node, but will fall back to other
+     * nodes if no memory is available on the preferred node. To reset the node preference, pass a node of -1 argument or call {@link #setLocalAlloc()} .
+     * @param node
+     */
+    public static void setPreferred(int node) {
+        ((NumaInterface) impl).setPreferred(node);
+    }
+
+    /**
+     * Run the current thread and its children on a specified node. To reset the binding call {@link #runOnAllNodes()}
+     * @param node
+     */
+    public static void runOnNode(int node) {
+        ((NumaInterface) impl).runOnNode(node);
+    }
+
+    public static void runOnAllNodes() {
+        runOnNode(-1);
+    }
+
+
+    /**
+     * Allocate a new NUMA buffer using the current policy. You must release the acquired buffer by {@link #free(java.nio.ByteBuffer)} because
+     * it is out of the control of GC.
+     * @param capacity byte size of the buffer
+     * @return new ByteBuffer
+     */
+    public static ByteBuffer alloc(int capacity) {
+        return ((NumaInterface) impl).alloc(capacity);
+    }
 
     /**
      * Allocate a new local NUMA buffer. You must release the acquired buffer by {@link #free(java.nio.ByteBuffer)} because

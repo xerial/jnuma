@@ -63,9 +63,34 @@ public class NoNuma implements NumaInterface {
         // do nothing
     }
 
+    @Override
+    public int preferredNode() {
+        return 0;
+    }
+
+    @Override
+    public void setLocalAlloc() {
+        // do nothing
+    }
+
+    @Override
+    public void setPreferred(int node) {
+        // do nothing
+    }
+
+    @Override
+    public void runOnNode(int node) {
+        // do nothing
+    }
+
+    @Override
+    public ByteBuffer alloc(int capacity) {
+        return ByteBuffer.allocate(capacity);
+    }
+
 
     public ByteBuffer allocLocal(int capacity) {
-        return ByteBuffer.allocateDirect(capacity);
+        return alloc(capacity);
     }
 
     public ByteBuffer allocOnNode(int capacity, int node) {

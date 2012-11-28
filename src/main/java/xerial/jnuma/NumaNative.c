@@ -18,6 +18,7 @@
 #include <sched.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
 #include "NumaNative.h"
 
 
@@ -26,7 +27,7 @@ void throwException(JNIEnv *env, jobject self, int errorCode) {
    if(c == 0)
      return;
 
-   jmethodID m = (*env)->GetMethodID(env, c, "throwErro", "(I)V");
+   jmethodID m = (*env)->GetMethodID(env, c, "throwError", "(I)V");
    if(m == 0)
      return;
 
@@ -91,10 +92,26 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_nodeToCpus
   (JNIEnv *env, jobject obj, jint node, jlongArray array) {
 
    unsigned long* buf = (unsigned long*) (*env)->GetPrimitiveArrayCritical(env, (jarray) array, 0);
-   jsize len = (size_t) (*env)->GetArrayLength(env, array);
-   int ret = numa_node_to_cpus(node, buf, len);
+   int len = (int) (*env)->GetArrayLength(env, array);
+   int ret = numa_node_to_cpus((int) node, buf, len * 8);
    (*env)->ReleasePrimitiveArrayCritical(env, (jarray) array, buf, 0);
-   return ret;
+   if(ret != 0)
+     throwException(env, obj, errno);
+  }
+
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    alloc
+ * Signature: (I)Ljava/nio/ByteBuffer;
+ */
+JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_alloc
+  (JNIEnv *env, jobject obj, jint capacity) {
+   void* mem = numa_alloc((size_t) capacity);
+   //printf("allocate local memory\n");
+   if(mem == NULL)
+     printf("failed to allocate local memory\n");
+   return (*env)->NewDirectByteBuffer(env, mem, (jlong) capacity);
   }
 
 
@@ -123,10 +140,14 @@ JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocInterleaved
   (JNIEnv *env, jobject obj, jint capacity) {
    jobject b;
    void* mem = numa_alloc_interleaved((size_t) capacity);
-   if(mem == NULL)
-     printf("failed to allocate interleaved memory\n");
-   b = (*env)->NewDirectByteBuffer(env, mem, (jlong) capacity);
-   return b;
+   if(mem == NULL) {
+     // failed to allocate interleaved memory
+     throwException(env, obj, 11);
+   }
+   else {
+     b = (*env)->NewDirectByteBuffer(env, mem, (jlong) capacity);
+     return b;
+   }
   }
 
 
@@ -154,7 +175,7 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity
   CPU_ZERO(&mask);
   int ret = sched_getaffinity(0, sizeof(mask), &mask);
   if(ret < 0)
-    return;
+    throwException(env, obj, ret);
 
   for(i=0; i<numCPUs; ++i)
      if(CPU_ISSET(i, &mask))
@@ -180,5 +201,48 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setAffinity
 
   int ret = sched_setaffinity(0, sizeof(cpu_set_t), &mask);
   if(ret < 0)
-    throwException(env, obj, 11);
+    throwException(env, obj, errno);
 }
+
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    preferredNode
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_preferredNode
+  (JNIEnv *env, jobject obj) {
+     return (jint) numa_preferred();
+  }
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    setLocalAlloc
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setLocalAlloc
+  (JNIEnv *env, jobject obj) {
+    numa_set_localalloc();
+  }
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    setPreferred
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setPreferred
+  (JNIEnv *env, jobject obj, jint node) {
+  numa_set_preferred((int) node);
+  }
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    runOnNode
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_runOnNode
+  (JNIEnv *env, jobject obj, jint node) {
+  int ret = numa_run_on_node((int) node);
+  if(ret != 0)
+    throwException(env, obj, errno);
+  }

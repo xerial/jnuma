@@ -35,12 +35,12 @@ import java.io.{OutputStream, FileOutputStream}
 class NumaTest extends MySpec {
 
   "Numa" should {
-    "repot NUMA info" in {
+    "repot NUMA info" taggedAs ("report") in {
       val available = Numa.isAvailable
       val numNodes = Numa.numNodes()
       debug("numa is available: " + available)
       debug("num nodes: " + numNodes)
-      for(i <- 0 until numNodes) {
+      for (i <- 0 until numNodes) {
         val n = Numa.nodeSize(i)
         val f = Numa.freeSize(i)
         debug("node %d - size:%,d free:%,d", i, n, f)
@@ -49,54 +49,65 @@ class NumaTest extends MySpec {
 
       val nodes = (0 until numNodes)
 
-      for(n1 <- nodes; n2 <- n1 until numNodes) {
+      for (n1 <- nodes; n2 <- n1 until numNodes) {
         val d = Numa.distance(n1, n2)
         debug("distance %s - %s: %d", n1, n2, d)
       }
 
-      for(node <- nodes) {
-        val cpuVector = Numa.nodeToCpus(node)
-        def vecStr = {
-          val b = for(i <- 0 until Runtime.getRuntime.availableProcessors()) yield {
-            if((cpuVector(i / 64) & (0x01 << (i % 64))) == 0) "0" else "1"
-          }
-          b.mkString
-        }
-        debug("node %d -> cpus %s", node, vecStr)
-      }
-
-      def toBitString(b:Array[Long]) = {
-        val s = for(i <- 0 until Numa.numCPUs()) yield {
-          if((b(i/64) & (1L << (i%64))) == 0) "0" else "1"
+      def toBitString(b: Array[Long]) = {
+        val s = for (i <- 0 until Numa.numCPUs()) yield {
+          if ((b(i / 64) & (1L << (i % 64))) == 0) "0" else "1"
         }
         s.mkString
       }
 
+      for (node <- nodes) {
+        val cpuVector = Numa.nodeToCpus(node)
+        debug("node %d -> cpus %s", node, toBitString(cpuVector))
+      }
+
+
       val numCPUs = Runtime.getRuntime.availableProcessors();
-      val affinity = (0 until numCPUs).par.map { cpu =>
-        Numa.getAffinity()
+      val affinity = (0 until numCPUs).par.map {
+        cpu =>
+          Numa.getAffinity()
       }
       debug("affinity: %s", affinity.map(toBitString(_)).mkString(", "))
 
+      val preferred = (0 until numCPUs).par.map {
+        cpu =>
+          Numa.runOnNode(cpu % numNodes)
+          Numa.setPreferred(cpu % numNodes)
+          val n = Numa.getPreferredNode
+          Numa.runOnAllNodes()
+          n
+      }
+      debug("prefererd NUMA nodes: %s", preferred.mkString(", "))
 
-      val s = (0 until numCPUs).par.map { cpu =>
-        Numa.setAffinity((cpu + 1) % numCPUs)
-        if(cpu % 2 == 0)
-          (0 until Int.MaxValue / 10).foreach { i => }
-        Numa.getAffinity()
+
+
+      val s = (0 until numCPUs).par.map {
+        cpu =>
+          Numa.setAffinity((cpu + 1) % numCPUs)
+          if (cpu % 2 == 0)
+            (0 until Int.MaxValue / 10).foreach {
+              i =>
+            }
+          Numa.getAffinity()
       }
       debug("affinity after setting: %s", s.map(toBitString(_)).mkString(", "))
 
-      val r = (0 until numCPUs).par.map { cpu =>
-        Numa.resetAffinity()
-        Numa.getAffinity()
+      val r = (0 until numCPUs).par.map {
+        cpu =>
+          Numa.resetAffinity()
+          Numa.getAffinity()
       }
       debug("affinity after resetting: %s", r.map(toBitString(_)).mkString(", "))
 
     }
 
     "allocate local buffer" in {
-      for(i <- 0 until 3) {
+      for (i <- 0 until 3) {
         val local = Numa.allocLocal(1024)
         Numa.free(local)
       }
@@ -107,12 +118,12 @@ class NumaTest extends MySpec {
 
       val N = 100000
 
-      def access(b:ByteBuffer) {
+      def access(b: ByteBuffer) {
         val r = new Random(0)
         var i = 0
         val p = 1024
         val buf = new Array[Byte](p)
-        while(i < N) {
+        while (i < N) {
           b.position(r.nextInt(b.capacity() / p) * p)
           b.get(buf)
           i += 1
@@ -125,7 +136,7 @@ class NumaTest extends MySpec {
       val bi = Numa.allocInterleaved(8 * 1024 * 1024)
 
 
-      time("numa random access", repeat=10) {
+      time("numa random access", repeat = 10) {
 
         block("direct") {
           access(bl)
@@ -154,30 +165,30 @@ class NumaTest extends MySpec {
       Numa.free(bi)
     }
 
-    def radixSort8(buf:ByteBuffer) = {
+    def radixSort8(buf: ByteBuffer) = {
       val K = 256
       val N = buf.capacity()
 
       val pile = Array.ofDim[Int](K)
       // count frequencies
       buf.position(0)
-      for(i <- 0 until N)
+      for (i <- 0 until N)
         pile(buf.get(i) + 128) += 1
 
       // count cumulates
-      for(i <- 1 until K) {
-        pile(i) += pile(i-1)
+      for (i <- 1 until K) {
+        pile(i) += pile(i - 1)
       }
 
       def split {
-        for(i <- 0 until N) {
+        for (i <- 0 until N) {
           var e = buf.get(i)
           var toContinue = true
-          while(toContinue) {
+          while (toContinue) {
             val p = e + 128
             val pileIndex = pile(p) - 1
             pile(p) -= 1
-            if(pileIndex < i)
+            if (pileIndex < i)
               toContinue = false
             else {
               val tmp = buf.get(pileIndex)
@@ -192,30 +203,78 @@ class NumaTest extends MySpec {
     }
 
 
-    def radixSort8_array(b:Array[Byte]) = {
+    def radixSort8_local(buf: ByteBuffer) = {
       val K = 256
-      val N = b.length
-      val count = new Array[Int](K+1)
+      val N = buf.capacity() - (2 * 4 * K)
+
+      val countOffset = buf.capacity() / 4
+      val pileOffset = countOffset + K
 
       // count frequencies
-      for(i <- 0 until N) {
+      buf.position(0)
+      for (i <- 0 until K) {
+        buf.putInt(countOffset + i * 4, 0)
+      }
+      for (i <- 0 until buf.capacity()) {
+        val ch = buf.get(i) + 128
+        val prevCount = buf.getInt(countOffset + ch * 4)
+        buf.putInt(countOffset + ch * 4, prevCount + 1)
+      }
+      // count cumulates
+      for (i <- 0 until K) {
+        val prev = if (i == 0) 0 else buf.getInt(countOffset + (i - 1) * 4)
+        val current = buf.getInt(countOffset + i * 4)
+        buf.putInt(pileOffset + i * 4, prev + current)
+      }
+
+      def split {
+        for (i <- 0 until N) {
+          var e = buf.get(i)
+          var toContinue = true
+          while (toContinue) {
+            val p = e + 128
+            val pileIndex = buf.getInt(pileOffset + p * 4) - 1
+            buf.putInt(pileOffset + p * 4, pileIndex)
+            if (pileIndex < i)
+              toContinue = false
+            else {
+              val tmp = buf.get(pileIndex)
+              buf.put(pileIndex, e)
+              e = tmp
+            }
+          }
+          buf.put(i, e)
+        }
+      }
+      split
+    }
+
+
+
+    def radixSort8_array(b: Array[Byte]) = {
+      val K = 256
+      val N = b.length
+      val count = new Array[Int](K + 1)
+
+      // count frequencies
+      for (i <- 0 until N) {
         count(b(i) + 128) += 1
       }
       // count cumulates
-      for(i <- 1 to K)
-        count(i) += count(i-1)
+      for (i <- 1 to K)
+        count(i) += count(i - 1)
 
       def split {
-        val pile = new Array[Int](K+1)
+        val pile = new Array[Int](K + 1)
         Array.copy(count, 1, pile, 0, K)
-        for(i <- 0 until N) {
+        for (i <- 0 until N) {
           var e = b(i)
           var toContinue = true
-          while(toContinue) {
+          while (toContinue) {
             val p = e + 128
             val pileIndex = pile(p) - 1
             pile(p) -= 1
-            if(pileIndex < i)
+            if (pileIndex < i)
               toContinue = false
             else {
               val tmp = b(pileIndex)
@@ -230,12 +289,12 @@ class NumaTest extends MySpec {
     }
 
 
-    "perform microbenchmark" taggedAs("bench") in {
+    "perform microbenchmark" taggedAs ("bench") in {
 
       val bufferSize = 4 * 1024 * 1024
       when("buffer size is %,d".format(bufferSize))
 
-      val numaBufs = (for(i <- 0 until Numa.numNodes()) yield "numa%d".format(i) -> Numa.allocOnNode(bufferSize, i)) :+
+      val numaBufs = (for (i <- 0 until Numa.numNodes()) yield "numa%d".format(i) -> Numa.allocOnNode(bufferSize, i)) :+
         "numa-i" -> Numa.allocInterleaved(bufferSize)
 
 
@@ -245,39 +304,39 @@ class NumaTest extends MySpec {
       val bufs = numaBufs ++ Map("heap" -> bheap)
 
       // fill bytes
-      def fillBytes(b:ByteBuffer) = {
+      def fillBytes(b: ByteBuffer) = {
         var i = 0
         b.clear()
-        while(b.remaining() > 0) {
+        while (b.remaining() > 0) {
           b.put(i.toByte)
           i += 1
         }
       }
 
-      def fillInt(b:ByteBuffer) = {
+      def fillInt(b: ByteBuffer) = {
         val r = new Random(0)
         b.clear()
         var i = 0
-        while(b.remaining() >= 4) {
+        while (b.remaining() >= 4) {
           b.putInt(r.nextInt())
           i += 1
         }
       }
 
       val devNull = new FileOutputStream("/dev/null")
-      def dump(b:ByteBuffer) = {
+      def dump(b: ByteBuffer) = {
         b.position(0)
         b.limit(b.capacity())
         devNull.getChannel().write(b)
       }
 
-      def randomAccess(b:ByteBuffer) = {
+      def randomAccess(b: ByteBuffer) = {
         val r = new Random(0)
         val pageSize = 128
         val maxPage = b.capacity() / pageSize
         var i = 0
         val buf = new Array[Byte](pageSize)
-        while(i < 100000) {
+        while (i < 100000) {
           b.position(r.nextInt(maxPage) * pageSize)
           b.get(buf)
           i += 1
@@ -286,10 +345,12 @@ class NumaTest extends MySpec {
 
 
 
-      def bench[U](name:String, f:ByteBuffer => U, rep:Int = 3) {
-        time(name, repeat=rep) {
-          for((name, b) <- bufs)
-            block(name) { f(b) }
+      def bench[U](name: String, f: ByteBuffer => U, rep: Int = 3) {
+        time(name, repeat = rep) {
+          for ((name, b) <- bufs)
+            block(name) {
+              f(b)
+            }
         }
       }
 
@@ -299,15 +360,15 @@ class NumaTest extends MySpec {
       bench("random page read", randomAccess)
 
       val R = 1
-      bench("radix sort", radixSort8, rep=R)
+      bench("radix sort", radixSort8, rep = R)
       val ba = Array.ofDim[Byte](bufferSize)
       val r = new Random(0)
-      for(i <- 0 until bufferSize / 4) {
+      for (i <- 0 until bufferSize / 4) {
         val v = r.nextInt
         ba(i) = ((v >> 24) & 0xFF).toByte
-        ba(i+1) = ((v >> 16) & 0xFF).toByte
-        ba(i+2) = ((v >> 8) & 0xFF).toByte
-        ba(i+3) = (v & 0xFF).toByte
+        ba(i + 1) = ((v >> 16) & 0xFF).toByte
+        ba(i + 2) = ((v >> 8) & 0xFF).toByte
+        ba(i + 3) = (v & 0xFF).toByte
       }
 
       time("radix sort on java array", repeat = R) {
@@ -315,65 +376,86 @@ class NumaTest extends MySpec {
       }
 
 
-      for((name, b) <- numaBufs)
+      for ((name, b) <- numaBufs)
         Numa.free(b)
     }
 
-    "sort in parallel" taggedAs("psort") in {
+    def boundTo[U](cpu: Int)(f: => U): U = {
+      try {
+        Numa.setAffinity(cpu)
+        f
+      }
+      finally
+        Numa.resetAffinity
+    }
 
-      val bufferSize = 8 * 1024 * 1024
+    "sort in parallel" taggedAs ("psort") in {
 
-      def init(b:ByteBuffer) {
+      val bufferSize = 1024 * 1024
+
+      def init(b: ByteBuffer) {
         val r = new Random(0)
-        for(i <- 0 until bufferSize) {
+        for (i <- 0 until bufferSize) {
           b.put(i, r.nextInt.toByte)
         }
       }
       val N = 1
 
-      def boundTo[U](cpu:Int)(f: => U): U = {
-        try {
-          Numa.setAffinity(cpu)
-          f 
-        }
-        finally
-          Numa.resetAffinity
-      }
 
       val holder = Seq.newBuilder[ByteBuffer]
       val C = Numa.numCPUs
       debug("start parallel sorting using %d CPUs", C)
-      time("sorting", repeat=3) {
-        block("numa-aware", repeat=N) {
+      time("sorting", repeat = 3) {
+        block("numa-aware", repeat = N) {
           val M = Numa.numNodes
-          (0 until C).par.foreach { cpu =>
-            boundTo(cpu) {
-              val buf = Numa.allocOnNode(bufferSize, cpu % M)
-              holder += buf
-              init(buf)
-              radixSort8(buf)
-            }
+          (0 until C).par.foreach {
+            cpu =>
+              boundTo(cpu) {
+                val node = cpu % M;
+                Numa.runOnNode(node)
+                Numa.setPreferred(node)
+                val buf = Numa.allocOnNode(bufferSize, node)
+                holder += buf
+                init(buf)
+                radixSort8(buf)
+                Numa.runOnAllNodes();
+                Numa.setLocalAlloc();
+              }
           }
         }
 
-        block("heap", repeat=N) {
-          (0 until C).par.foreach { cpu =>
-            boundTo(cpu) {
-              val buf = ByteBuffer.allocate(bufferSize)
-              init(buf)
-              radixSort8(buf)
-            }
+        //        block("numa-aware-local", repeat=N) {
+        //          val M = Numa.numNodes
+        //          (0 until C).par.foreach { cpu =>
+        //            boundTo(cpu) {
+        //              val buf = Numa.allocOnNode(bufferSize, cpu % M)
+        //              holder += buf
+        //              init(buf)
+        //              radixSort8_local(buf)
+        //            }
+        //          }
+        //        }
+
+        block("heap", repeat = N) {
+          (0 until C).par.foreach {
+            cpu =>
+              boundTo(cpu) {
+                val buf = ByteBuffer.allocate(bufferSize)
+                init(buf)
+                radixSort8(buf)
+              }
           }
         }
 
-        block("wrapped", repeat=N) {
-          (0 until C).par.foreach { cpu =>
-            boundTo(cpu) {
-              val arr = new Array[Byte](bufferSize)
-              val buf = ByteBuffer.wrap(arr)
-              init(buf)
-              radixSort8(buf)
-            }
+        block("wrapped", repeat = N) {
+          (0 until C).par.foreach {
+            cpu =>
+              boundTo(cpu) {
+                val arr = new Array[Byte](bufferSize)
+                val buf = ByteBuffer.wrap(arr)
+                init(buf)
+                radixSort8(buf)
+              }
           }
         }
 
@@ -381,6 +463,52 @@ class NumaTest extends MySpec {
       }
 
       holder.result.foreach(b => Numa.free(b))
+    }
+
+    "allocate memory and a CPU to a specific node" taggedAs ("pref") in {
+
+      val numCPU = Numa.numCPUs
+      val bufferSize = 1024 * 1024
+      def newArray = {
+        val a = Array.ofDim[Int](bufferSize)
+        val r = new Random(0)
+        for (i <- 0 until bufferSize)
+          a(i) = r.nextInt(256)
+        a
+      }
+
+      debug("start Array sorting")
+      val R = 20
+      time("alloc", repeat = R) {
+
+        block("numa-aware") {
+          val M = Numa.numNodes
+            (0 until numCPU).par.foreach {
+              cpu =>
+                  boundTo(cpu) {
+                    val node = cpu % M
+                    Numa.runOnNode(node)
+                    Numa.setPreferred(node)
+                    val a = newArray
+                    util.Arrays.sort(a)
+                    Numa.runOnAllNodes()
+                    Numa.setLocalAlloc()
+                  }
+            }
+        }
+
+        block("default") {
+          (0 until numCPU).par.foreach {
+            cpu =>
+                boundTo(cpu) {
+                  val a = newArray
+                  util.Arrays.sort(a)
+              }
+          }
+        }
+
+
+      }
     }
   }
 }

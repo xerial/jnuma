@@ -35,6 +35,13 @@ public class NumaNative implements NumaInterface {
     public native void getAffinity(int pid, long[] cpuBitMask, int numCPUs);
     public native void setAffinity(int pid, long[] cpuBitMask, int numCPUs);
 
+    public native int preferredNode();
+    public native void setLocalAlloc();
+
+    public native void setPreferred(int node);
+    public native void runOnNode(int node);
+
+    public native ByteBuffer alloc(int capacity);
     public native ByteBuffer allocLocal(int capacity);
     public native ByteBuffer allocOnNode(int capacity, int node);
     public native ByteBuffer allocInterleaved(int capacity);
@@ -43,7 +50,7 @@ public class NumaNative implements NumaInterface {
 
 
     private void throwError(int errorCode) throws Exception {
-
+        throw new Exception(String.format("NUMA error occurred %d", errorCode));
     }
 
 }

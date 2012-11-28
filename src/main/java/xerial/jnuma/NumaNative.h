@@ -73,6 +73,46 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setAffinity
 
 /*
  * Class:     xerial_jnuma_NumaNative
+ * Method:    preferredNode
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_preferredNode
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    setLocalAlloc
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setLocalAlloc
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    setPreferred
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setPreferred
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    runOnNode
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_runOnNode
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    alloc
+ * Signature: (I)Ljava/nio/ByteBuffer;
+ */
+JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_alloc
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
  * Method:    allocLocal
  * Signature: (I)Ljava/nio/ByteBuffer;
  */
