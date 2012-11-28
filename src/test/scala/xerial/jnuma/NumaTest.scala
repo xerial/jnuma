@@ -529,7 +529,9 @@ class NumaTest extends MySpec {
 
     "retrive memory from another nodes" taggedAs("remote") in {
 
-      val B = 8 * 1024
+      val prop = System.getProperty("jnuma.test.bf", "8192")
+      debug("buffer size: %s", prop)
+      val B = prop.toInt
       def access(b:ByteBuffer) {
         b.position(0)
         for(i <- 0 until B) {
@@ -539,22 +541,20 @@ class NumaTest extends MySpec {
 
       def alloc(f: => ByteBuffer) {
         val r = new Random(13)
-        for(i <- 0 until 10) {
-          val b = f
-          b.position(0)
-          for(i <- 0 until B / 4)
-            b.putInt(r.nextInt())
+        val b = f
+        b.position(0)
+        for(i <- 0 until B / 4)
+          b.putInt(r.nextInt())
 //          b.position(0)
 //          for(i <- 0 until B / 4)
 //            b.getInt
-          radixSort8(b)
-          Numa.free(b)
-        }
+        radixSort8(b)
+        Numa.free(b)
       }
 
       Numa.runOnNode(0)
       debug("using a cpu on node %d", 0)
-      time("numa", repeat=1000) {
+      time("numa") {
         block("node0") {
           alloc(Numa.allocOnNode(B, 0))
         }
