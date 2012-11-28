@@ -573,37 +573,37 @@ class NumaTest extends MySpec {
 
     "retrive array from another node" taggedAs("jarray") in {
 
-      val B = 64 * 1024
+      val B = 1024 * 1024
 
       def alloc(f: => Array[Int]) {
         val r = new Random(13)
-        for(i <- 0 until 100000) {
+        for(i <- 0 until 1000) {
           val arr = f
-          for(i <- 0 until B / 4)
-            arr(i) = r.nextInt()
-          //util.Arrays.sort(arr)
+          for(index <- 0 until B / 4)
+            arr(index) = r.nextInt()
         }
       }
 
       Numa.runOnNode(0)
       debug("using a cpu on node %d", 0)
-      time("numa", repeat=1) {
-        block("node1") {
-          debug("allocate array on node 1")
-          Numa.setPreferred(1)
-          alloc{
-            val a = new Array[Int](B)
-            Numa.toNodeMemory(a, B * 4, 1)
-            a
-          }
-          Numa.setLocalAlloc
-        }
+      time("numa", repeat=2) {
         block("node0") {
           debug("allocate array on node 0")
           Numa.setPreferred(0)
           alloc{
             val a = new Array[Int](B)
             Numa.toNodeMemory(a, B * 4, 0)
+            a
+          }
+          Numa.setLocalAlloc
+        }
+
+        block("node1") {
+          debug("allocate array on node 1")
+          Numa.setPreferred(1)
+          alloc{
+            val a = new Array[Int](B)
+            Numa.toNodeMemory(a, B * 4, 1)
             a
           }
           Numa.setLocalAlloc
