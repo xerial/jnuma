@@ -84,6 +84,11 @@ public class NoNuma implements NumaInterface {
     }
 
     @Override
+    public void toNodeMemory(Object array, int length, int node) {
+        // do nothing
+    }
+
+    @Override
     public ByteBuffer alloc(int capacity) {
         return ByteBuffer.allocate(capacity);
     }

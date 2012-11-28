@@ -105,6 +105,14 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_runOnNode
 
 /*
  * Class:     xerial_jnuma_NumaNative
+ * Method:    toNodeMemory
+ * Signature: (Ljava/lang/Object;II)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_toNodeMemory
+  (JNIEnv *, jobject, jobject, jint, jint);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
  * Method:    alloc
  * Signature: (I)Ljava/nio/ByteBuffer;
  */

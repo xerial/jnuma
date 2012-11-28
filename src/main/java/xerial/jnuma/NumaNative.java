@@ -41,6 +41,8 @@ public class NumaNative implements NumaInterface {
     public native void setPreferred(int node);
     public native void runOnNode(int node);
 
+    public native void toNodeMemory(Object array, int length, int node);
+
     public native ByteBuffer alloc(int capacity);
     public native ByteBuffer allocLocal(int capacity);
     public native ByteBuffer allocOnNode(int capacity, int node);

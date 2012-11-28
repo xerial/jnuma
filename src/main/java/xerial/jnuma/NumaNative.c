@@ -246,3 +246,18 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_runOnNode
   if(ret != 0)
     throwException(env, obj, errno);
   }
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    toNodeMemory
+ * Signature: (Ljava/lang/Object;II)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_toNodeMemory
+  (JNIEnv *env, jobject obj, jobject array, jint length, jint node) {
+
+  void* buf = (void*) (*env)->GetPrimitiveArrayCritical(env, (jarray) array, 0);
+
+  numa_tonode_memory(buf, (size_t) length, (int) node);
+
+  (*env)->ReleasePrimitiveArrayCritical(env, (jarray) array, buf, (jint) 0);
+}

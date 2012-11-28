@@ -44,6 +44,8 @@ public interface NumaInterface {
     public void setPreferred(int node);
     public void runOnNode(int node);
 
+    public void toNodeMemory(Object array, int length, int node);
+
     //public void bind(long[] nodeMask);
 
     public ByteBuffer alloc(int capacity);

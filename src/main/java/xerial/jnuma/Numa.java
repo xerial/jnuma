@@ -338,4 +338,15 @@ public class Numa {
         ((NumaInterface) impl).free(buf);
     }
 
+
+    /**
+     * Send the array to a node. The array should be primitive type array. To send the array to a node correctly,
+     * the array should not be touched before calling this method.
+     * @param array
+     * @param byteLength
+     * @param node
+     */
+    public static void toNodeMemory(Object array, int byteLength, int node) {
+        ((NumaInterface) impl).toNodeMemory(array, byteLength, node);
+    }
 }
