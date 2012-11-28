@@ -49,7 +49,7 @@ object Build extends sbt.Build {
           "org.scalatest" %% "scalatest" % "1.8" % "test"
         ),
         javacOptions in Compile := defaultJavacOptions ++ Seq("-target", "1.5"),
-        javacOptions in Compile in doc := defaultJavacOptions,
+        javacOptions in Compile in doc := defaultJavacOptions ++ Seq("-linkoffline", "http://docs.oracle.com/javase/6/docs/api/", "http://docs.oracle.com/javase/6/docs/api/"),
 //        scalacOptions in Compile := defaultScalacOptions,
 //        scalacOptions in doc <++= (baseDirectory in LocalProject("jnuma"), version) map { (bd, v) =>
 //          val tree = if(v.endsWith("-SNAPSHOT")) "develop" else "master"
