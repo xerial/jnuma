@@ -498,6 +498,20 @@ class NumaTest extends MySpec {
             }
         }
 
+        block("numa-anti", repeat=RR) {
+          val M = Numa.numNodes
+          (0 until numCPU).par.foreach {
+            cpu =>
+              boundTo(cpu) {
+                val node = (cpu + 1) % M
+                Numa.setPreferred(node)
+                val a = newArray
+                util.Arrays.sort(a)
+                Numa.setLocalAlloc()
+              }
+          }
+        }
+
         block("default", repeat=RR) {
           (0 until numCPU).par.foreach {
             cpu =>
@@ -513,5 +527,82 @@ class NumaTest extends MySpec {
 
       }
     }
+
+    "retrive memory from another nodes" taggedAs("remote") in {
+
+      val B = 8 * 1024
+      def access(b:ByteBuffer) {
+        b.position(0)
+        for(i <- 0 until B) {
+          b.get
+        }
+      }
+
+      def alloc(f: => ByteBuffer) {
+        val r = new Random(13)
+        for(i <- 0 until 10) {
+          val b = f
+          b.position(0)
+          for(i <- 0 until B / 4)
+            b.putInt(r.nextInt())
+//          b.position(0)
+//          for(i <- 0 until B / 4)
+//            b.getInt
+          radixSort8(b)
+          Numa.free(b)
+        }
+      }
+
+      Numa.runOnNode(0)
+      debug("using a cpu on node %d", 0)
+      time("numa", repeat=1000) {
+        block("node0") {
+          alloc(Numa.allocOnNode(B, 0))
+        }
+
+        block("node1") {
+          alloc(Numa.allocOnNode(B, 1))
+        }
+
+        block("iv") {
+          alloc(Numa.allocInterleaved(B))
+        }
+      }
+
+      Numa.runOnAllNodes()
+    }
+
+    "retrive array from another node" taggedAs("jarray") in {
+
+      val B = 8 * 1024
+
+      def alloc(f: => Array[Int]) {
+        val r = new Random(13)
+        for(i <- 0 until 10000) {
+          val arr = f
+          for(i <- 0 until B / 4)
+            arr(i) = r.nextInt()
+          //util.Arrays.sort(arr)
+        }
+      }
+
+      Numa.runOnNode(0)
+      debug("using a cpu on node %d", 0)
+      time("numa", repeat=10) {
+        block("node0") {
+          Numa.setPreferred(0)
+          alloc(new Array[Int](B))
+          Numa.setLocalAlloc()
+        }
+        block("node1") {
+          Numa.setPreferred(1)
+          alloc(new Array[Int](B))
+          Numa.setLocalAlloc()
+        }
+      }
+
+      Numa.runOnAllNodes()
+    }
+
   }
 }
