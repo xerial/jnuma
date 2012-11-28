@@ -473,15 +473,16 @@ class NumaTest extends MySpec {
         val a = Array.ofDim[Int](bufferSize)
         val r = new Random(0)
         for (i <- 0 until bufferSize)
-          a(i) = r.nextInt(256)
+          a(i) = r.nextInt
         a
       }
 
       debug("start Array sorting")
-      val R = 20
+      val R = 2
+      val RR = 10
       time("alloc", repeat = R) {
 
-        block("numa-aware") {
+        block("numa-aware", repeat=RR) {
           val M = Numa.numNodes
             (0 until numCPU).par.foreach {
               cpu =>
@@ -497,13 +498,15 @@ class NumaTest extends MySpec {
             }
         }
 
-        block("default") {
+        block("default", repeat=RR) {
           (0 until numCPU).par.foreach {
             cpu =>
                 boundTo(cpu) {
                   val a = newArray
                   util.Arrays.sort(a)
-              }
+                  Numa.runOnAllNodes()
+                  Numa.setLocalAlloc()
+                }
           }
         }
 
