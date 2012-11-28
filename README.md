@@ -1,71 +1,27 @@
-scala-min
+jnuma
 =========
 
-A minimal project template to start programming with Scala.
+A Java library for accessing NUMA (Non Uniform Memory Access) API. 
 
-### Contents
+## Usage 
 
-scala-min project includes:
-- Sample Scala codes.
-- [ScalaTest](http://www.scalatest.org/) examples (writing specs, logging, tagging tests, measuring code performances, etc.)
-- Pre-configured settings for developing with IntelliJ IDE
-- A command for packaging projects with [sbt-pack](http://github.com/xerial/sbt-pack) plugin.
-  - `sbt-pack` also generates installation scripts for you programs.
+(Scala) Add depedency settings to your sbt project file (e.g., `project/build.sbt`) :
 
-### Usage
+    libraryDependencies += "org.xerial" % "jnuma" % "0.1"
 
-Download [tar.gz archive](https://github.com/xerial/scala-min/archive/0.1.1.tar.gz) or [.zip](https://github.com/xerial/scala-min/archive/0.1.1.zip) of this project, then extract the contents.
-Alternatively, you can run the following commands to extract the scala-min project:
+(Java) Add maven dependency settings for using `org.xerial, jnuma, 0.1`
 
-    $ mkdir myproject
-    $ cd myproject
-    $ curl -L https://github.com/xerial/scala-min/archive/0.1.tar.gz | tar xvz --strip-components=1
+#### Using snapshot versions
+Add a resolver setting to your project file:
 
+    resolvers += "Sonatype snapshot repo" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-**Run tests**
+## API
 
-    $ bin/sbt test
+Call static methods defined in [xerial.jnuma.Numa](https://oss.sonatype.org/service/local/repositories/releases/archive/org/xerial/jnuma/0.1/jnuma-0.1-javadoc.jar/!/xerial/jnuma/Numa.html)
 
-**Run tests when updates of the source codes are detected**
-   
-    $ bin/sbt "~test"
+## limitation
 
-**Run specific tests matching a pattern**
+Currenty jnuma supports 64-bit Linux only. 
 
-    $ bin/sbt "~test-only *HelloTest"
-
-**Run tagged test only**
-
-    $ bin/sbt "~test -- include(test1)"
-
-**Create a runnable package**
-  
-    $ bin/sbt pack
-    $ target/pack/bin/hello
-    Hello World!!
-
-**Install your program**
-
-    $ bin/sbt pack
-    $ cd target/pack; make install
-    $ ~/local/bin/hello
-    Hello World!!
-
-**Create IntelliJ project files**
-
-    $ bin/sbt gen-idea
-
-Then open the project folder from IntelliJ.
-
-**Add dependent libraries**
-
-Edit `project/Build.scala`, then add libraries to `libraryDependences` variable.
-
-### Customize
-
-Rename the project name defined in `project/Build.scala` as you like.
-
-### ToDo
-
-- Add examples using command line parser
 

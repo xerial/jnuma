@@ -13,7 +13,7 @@ compile: $(wildcard $(SRC)/xerial/jnuma/*.java)
 native: src/main/resources/xerial/jnuma/native/libjnuma.so
 
 $(SRC)/xerial/jnuma/NumaNative.h: $(SRC)/xerial/jnuma/NumaNative.java compile
-	javah -classpath $(TARGET)/classes -o $@ NumaNative
+	javah -classpath $(TARGET)/classes -o $@ xerial.jnuma.NumaNative
 
 $(TARGET)/lib/NumaNative.o : $(SRC)/xerial/jnuma/NumaNative.c
 	@mkdir -p $(@D)
