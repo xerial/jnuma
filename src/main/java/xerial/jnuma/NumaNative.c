@@ -160,22 +160,22 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free__Ljava_nio_ByteBuffer_2
      //printf("free capacity:%d\n", capacity);
      numa_free(mem, (size_t) capacity);
    }
-  }
+}
 
 JNIEXPORT jlong JNICALL Java_xerial_jnuma_NumaNative_allocMemory
   (JNIEnv *env, jobject obj, jlong capacity) {
    void* mem = numa_alloc((size_t) capacity);
    if(mem == NULL)
      printf("failed to allocate local memory\n");
-   return (jlong) mem
-  }
+   return (jlong) mem;
 }
+
 
 
 JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free__JJ
   (JNIEnv *env, jobject jobj, jlong address, jlong capacity) {
     if(address != 0) {
-       numa_free((void *) address, (size_t) capacity)
+	numa_free((void *) address, (size_t) capacity);
     }
   }
 
@@ -241,7 +241,7 @@ JNIEXPORT jint JNICALL Java_xerial_jnuma_NumaNative_preferredNode
 JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setLocalAlloc
   (JNIEnv *env, jobject obj) {
     numa_set_localalloc();
-  }
+}
 
 /*
  * Class:     xerial_jnuma_NumaNative
@@ -251,7 +251,7 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setLocalAlloc
 JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_setPreferred
   (JNIEnv *env, jobject obj, jint node) {
   numa_set_preferred((int) node);
-  }
+}
 
 /*
  * Class:     xerial_jnuma_NumaNative
