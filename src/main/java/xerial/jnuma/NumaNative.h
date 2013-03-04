@@ -148,8 +148,24 @@ JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocInterleaved
  * Method:    free
  * Signature: (Ljava/nio/ByteBuffer;)V
  */
-JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free__Ljava_nio_ByteBuffer_2
   (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    allocMemory
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_xerial_jnuma_NumaNative_allocMemory
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     xerial_jnuma_NumaNative
+ * Method:    free
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free__JJ
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

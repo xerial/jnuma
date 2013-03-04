@@ -151,7 +151,7 @@ JNIEXPORT jobject JNICALL Java_xerial_jnuma_NumaNative_allocInterleaved
   }
 
 
-JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free__Ljava_nio_ByteBuffer_2
   (JNIEnv *env, jobject jobj, jobject buf) {
    //printf("free is called\n");
    void* mem = (*env)->GetDirectBufferAddress(env, buf);
@@ -161,6 +161,24 @@ JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free
      numa_free(mem, (size_t) capacity);
    }
   }
+
+JNIEXPORT jlong JNICALL Java_xerial_jnuma_NumaNative_allocMemory
+  (JNIEnv *env, jobject obj, jlong capacity) {
+   void* mem = numa_alloc((size_t) capacity);
+   if(mem == NULL)
+     printf("failed to allocate local memory\n");
+   return (jlong) mem
+  }
+}
+
+
+JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_free__JJ
+  (JNIEnv *env, jobject jobj, jlong address, jlong capacity) {
+    if(address != 0) {
+       numa_free((void *) address, (size_t) capacity)
+    }
+  }
+
 
 
 JNIEXPORT void JNICALL Java_xerial_jnuma_NumaNative_getAffinity

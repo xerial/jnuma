@@ -108,6 +108,16 @@ public class NoNuma implements NumaInterface {
     }
 
     @Override
+    public long allocMemory(long capacity) {
+        return sun.misc.Unsafe.getUnsafe().allocateMemory(capacity);
+    }
+
+    @Override
+    public void free(long address, long capacity) {
+        sun.misc.Unsafe.getUnsafe().freeMemory(address);
+    }
+
+    @Override
     public void free(ByteBuffer buf) {
         // Simply clear the buffer and let the GC collect the freed memory
         buf.clear();
