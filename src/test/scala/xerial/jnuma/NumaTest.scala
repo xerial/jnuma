@@ -464,6 +464,17 @@ class NumaTest extends MySpec {
       holder.result.foreach(b => Numa.free(b))
     }
 
+    "allocate more than 2GB array" taggedAs("long") in {
+       val N = 4L * 1024L * 1024L * 1024L
+       for(i <- 0 until 10) {
+	   debug("alloc")
+           val addr = Numa.allocMemory(N)
+	   debug("free")
+	   Numa.free(addr, N)
+       }	
+    }
+
+
     "allocate memory and a CPU to a specific node" taggedAs ("pref") in {
 
       val numCPU = Numa.numCPUs
