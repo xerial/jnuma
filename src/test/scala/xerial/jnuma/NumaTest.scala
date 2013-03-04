@@ -527,7 +527,7 @@ class NumaTest extends MySpec {
       }
     }
 
-    "retrive memory from another nodes" taggedAs("remote") in {
+    "retrieve memory from another nodes" taggedAs("remote") in {
 
       val prop = System.getProperty("jnuma.test.bf", "8192")
       debug("buffer size: %s", prop)
@@ -571,7 +571,7 @@ class NumaTest extends MySpec {
       Numa.runOnAllNodes()
     }
 
-    "retrive array from another node" taggedAs("jarray") in {
+    "retrieve array from another node" taggedAs("jarray") in {
 
       val B = 1024 * 1024
 
@@ -611,6 +611,50 @@ class NumaTest extends MySpec {
       }
 
       Numa.runOnAllNodes()
+    }
+
+    "bulk parallel write" taggedAs("pwrite") in {
+
+      val C = Numa.numCPUs
+
+      val bufferSize = 1024 * 1024 * 1024
+      val WR = 1
+
+      def writeBench(cpu:Int, b:ByteBuffer) {
+        (0 until WR).foreach { r =>
+          for(i <- 0 until bufferSize / 256) {
+            b.put(i, Random.nextInt(256).toByte)
+            if(cpu == 0 && i > 0 && (i % (1024 * 1024)) == 0) {
+              debug("wrote at %,d bytes", i)
+            }
+          }
+        }
+      }
+
+      time("pwrite", repeat=2) {
+        block("heap") {
+          debug("heap write")
+          (0 until C).par.foreach { cpu =>
+            boundTo(cpu) {
+              val b = ByteBuffer.allocate(bufferSize)
+              writeBench(cpu, b)
+            }
+          }
+        }
+
+        block("numa") {
+          debug("numa local write")
+          (0 until C).par.foreach { cpu =>
+            boundTo(cpu) {
+              val b = Numa.allocLocal(bufferSize)
+              writeBench(cpu, b)
+              Numa.free(b)
+            }
+          }
+        }
+      }
+
+
     }
 
   }
