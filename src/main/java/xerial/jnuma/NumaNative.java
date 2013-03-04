@@ -50,6 +50,9 @@ public class NumaNative implements NumaInterface {
 
     public native void free(ByteBuffer buf);
 
+    public native long allocMemory(long capacity);
+    public native void free(long address, long capacity);
+
 
     private void throwError(int errorCode) throws Exception {
         throw new Exception(String.format("NUMA error occurred %d", errorCode));

@@ -331,6 +331,24 @@ public class Numa {
     }
 
     /**
+     * Allocate a new NUMA buffer of the specified capacity
+     * @param capacity
+     * @return the raw memory address
+     */
+    public static long allocMemory(long capacity) {
+        return ((NumaInterface) impl).allocMemory(capacity);
+    }
+
+    /**
+     * Release the memory resource allocated at the specified address and capacity.
+     * @param address
+     * @param capacity
+     */
+    public static void free(long address, long capacity) {
+        ((NumaInterface) impl).free(address, capacity);
+    }
+
+    /**
      * Release the memory resources of the numa ByteBuffer.
      * @param buf the buffer to release
      */
@@ -349,4 +367,7 @@ public class Numa {
     public static void toNodeMemory(Object array, int byteLength, int node) {
         ((NumaInterface) impl).toNodeMemory(array, byteLength, node);
     }
+
+
+
 }

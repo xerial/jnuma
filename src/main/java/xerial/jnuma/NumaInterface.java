@@ -65,6 +65,20 @@ public interface NumaInterface {
     public ByteBuffer allocOnNode(int capacity, int node);
     public ByteBuffer allocInterleaved(int capacity);
 
+
+    /**
+     * Allocate a new memory of the size of the given capacity.
+     * @param capacity
+     * @return the allocated memory address
+     */
+    public long allocMemory(long capacity);
+
+    /**
+     * Free the allocated memory
+     * @param address
+     */
+    public void free(long address, long capacity);
+
     /**
      * Release the numa buffer
      * @param buf
