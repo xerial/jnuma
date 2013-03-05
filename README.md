@@ -22,6 +22,6 @@ Call static methods defined in [xerial.jnuma.Numa](https://oss.sonatype.org/serv
 
 ## limitation
 
-Currenty jnuma supports 64-bit Linux only. 
+Currenty jnuma supports 64-bit Linux only. For the other operating systems, standard memory allocation in JVM will be used.
 
 
