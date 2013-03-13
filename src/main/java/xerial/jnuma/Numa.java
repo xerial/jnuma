@@ -93,7 +93,8 @@ public class Numa {
 
 
     private static Object init() {
-        if(System.getProperty("os.name", "").contains("Windows"))
+        String osName = System.getProperty("os.name", "");
+        if(osName.contains("Windows") || osName.contains("Mac"))
             return new NoNuma();
         else {
             // Extract the native lib to temp folder

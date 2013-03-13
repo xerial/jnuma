@@ -24,8 +24,8 @@ object Build extends sbt.Build {
 
   val SCALA_VERSION = "2.9.2"
 
-  lazy val defaultJavacOptions = Seq("-encoding", "UTF-8", "-source", "1.5")
-  lazy val defaultScalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-target:jvm-1.5")
+  lazy val defaultJavacOptions = Seq("-encoding", "UTF-8", "-source", "1.6")
+  lazy val defaultScalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-unchecked", "-target:jvm-1.6")
 
   lazy val root = Project(
     id = "jnuma",
@@ -48,7 +48,7 @@ object Build extends sbt.Build {
           "org.xerial" % "xerial-core" % "3.0" % "test",
           "org.scalatest" %% "scalatest" % "1.8" % "test"
         ),
-        javacOptions in Compile := defaultJavacOptions ++ Seq("-target", "1.5"),
+        javacOptions in Compile := defaultJavacOptions ++ Seq("-target", "1.6"),
         javacOptions in Compile in doc := defaultJavacOptions ++ Seq("-windowtitle", "xerial.jnuma API", "-linkoffline", "http://docs.oracle.com/javase/6/docs/api/", "http://docs.oracle.com/javase/6/docs/api/"),
 //        scalacOptions in Compile := defaultScalacOptions,
 //        scalacOptions in doc <++= (baseDirectory in LocalProject("jnuma"), version) map { (bd, v) =>

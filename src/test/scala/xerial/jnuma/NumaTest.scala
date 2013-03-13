@@ -625,7 +625,7 @@ class NumaTest extends MySpec {
     }
 
     "bulk parallel write" taggedAs("pwrite") in {
-
+      pending
       val C = Numa.numCPUs
 
       val bufferSize = 1024 * 1024 * 1024
@@ -664,7 +664,18 @@ class NumaTest extends MySpec {
           }
         }
       }
+    }
 
+    "allocate memory" in {
+      val size = 1L * 1024 * 1024
+      var addr : Long = 0L
+      try {
+        addr = Numa.allocMemory(size)
+      }
+      finally {
+        if(addr != 0L)
+          Numa.free(addr, size)
+      }
 
     }
 

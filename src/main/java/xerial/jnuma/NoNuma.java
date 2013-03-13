@@ -16,6 +16,7 @@
 
 package xerial.jnuma;
 
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
 /**
@@ -23,6 +24,19 @@ import java.nio.ByteBuffer;
  * @author leo
  */
 public class NoNuma implements NumaInterface {
+
+    private sun.misc.Unsafe unsafe;
+
+    NoNuma() {
+        try {
+            Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+            f.setAccessible(true);
+            unsafe = (sun.misc.Unsafe) f.get(null);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public boolean isAvailable() {
@@ -109,12 +123,12 @@ public class NoNuma implements NumaInterface {
 
     @Override
     public long allocMemory(long capacity) {
-        return sun.misc.Unsafe.getUnsafe().allocateMemory(capacity);
+        return unsafe.allocateMemory(capacity);
     }
 
     @Override
     public void free(long address, long capacity) {
-        sun.misc.Unsafe.getUnsafe().freeMemory(address);
+        unsafe.freeMemory(address);
     }
 
     @Override
