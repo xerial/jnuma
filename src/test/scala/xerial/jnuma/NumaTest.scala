@@ -624,5 +624,18 @@ class NumaTest extends MySpec {
       Numa.runOnAllNodes()
     }
 
+    "allocate memory" in {
+      val size = 1L * 1024 * 1024
+      var addr : Long = 0L
+      try {
+        addr = Numa.allocMemory(size)
+      }
+      finally {
+        if(addr != 0L)
+          Numa.free(addr, size)
+      }
+
+    }
+
   }
 }
